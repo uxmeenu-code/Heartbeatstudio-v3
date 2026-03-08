@@ -684,7 +684,7 @@ async function renderLibrary() {
             onclick="startRename(${s.id})"
             aria-label="Rename ${esc(s.name)}">✏️</button>
           <button class="sess-btn del"
-            onclick="confirmDel(${s.id})"
+          onclick="Storage.deleteSession(${s.id}); renderLibrary();"
             aria-label="Delete ${esc(s.name)}">🗑</button>
         </div>
       </div>
