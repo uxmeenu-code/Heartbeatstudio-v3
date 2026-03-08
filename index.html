@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="description" content="Detect your heartbeat with your phone camera and transform it into personalised music. Real-time BPM, HRV analysis, and a unique soundtrack.">
+  <meta name="description" content="Detect your heartbeat with your phone camera and transform it into personalised music. Real-time BPM, HRV analysis, and a unique evolving soundtrack.">
   <meta name="theme-color" content="#060810">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,6 +24,7 @@
 
 <div class="app" id="main">
 
+
 <!-- ╔══════════════════════════════════════════╗
      ║  SCREEN: HOME                            ║
      ╚══════════════════════════════════════════╝ -->
@@ -32,7 +33,7 @@
   <header class="home-hd" aria-label="HeartBeat Studio">
     <p class="eyebrow" aria-hidden="true"><span class="dot"></span> Live Biometric Studio</p>
     <h1 class="page-h">HeartBeat<br><em>Studio</em></h1>
-    <p class="page-sub">Turn your pulse into music</p>
+    <p class="page-sub">Turn your pulse into unique evolving music</p>
   </header>
 
   <!-- Live ECG preview strip -->
@@ -47,15 +48,15 @@
     </div>
     <div class="feat" role="listitem">
       <span class="feat-icon" aria-hidden="true">🎵</span>
-      <span class="feat-lbl">Heartbeat‑generated music</span>
+      <span class="feat-lbl">Heartbeat-generated music</span>
     </div>
     <div class="feat" role="listitem">
       <span class="feat-icon" aria-hidden="true">📊</span>
       <span class="feat-lbl">Real-time BPM &amp; HRV</span>
     </div>
     <div class="feat" role="listitem">
-      <span class="feat-icon" aria-hidden="true">💾</span>
-      <span class="feat-lbl">Save &amp; replay sessions</span>
+      <span class="feat-icon" aria-hidden="true">🎼</span>
+      <span class="feat-lbl">4-phase music evolution</span>
     </div>
   </div>
 
@@ -65,7 +66,7 @@
     <p class="how-to-txt">
       Place your <strong>fingertip firmly</strong> over the
       <strong>rear camera lens</strong> and hold still for
-      <strong>30 seconds</strong> for accurate results.
+      <strong>30 seconds</strong>. Your heartbeat builds unique music in real time.
     </p>
   </div>
 
@@ -97,15 +98,25 @@
   <header class="scan-hd">
     <p class="scan-lbl" aria-hidden="true"><span class="dot"></span> Scanning</p>
     <h2 class="scan-title">Detecting Your<br>Pulse</h2>
+    <!-- ★ NEW: Evolution phase badge -->
+    <span class="phase-badge" id="evolutionPhase" aria-live="polite" data-phase="0">◎ Warmup</span>
   </header>
 
-  <!-- Camera ring -->
+  <!-- Camera ring — id="camRing" used for beat flash -->
   <div class="cam-wrap" role="img" aria-label="Camera preview — cover lens with fingertip">
     <video id="camVid" class="cam-vid"
       autoplay playsinline muted
       aria-label="Camera feed for pulse detection"></video>
-    <div class="cam-ring" aria-hidden="true"></div>
+    <div class="cam-ring" id="camRing" aria-hidden="true"></div>
     <div class="cam-spin" aria-hidden="true"></div>
+  </div>
+
+  <!-- ★ NEW: Amplitude meter bar -->
+  <div class="amp-wrap" aria-hidden="true">
+    <div class="amp-track">
+      <div class="amp-bar" id="ampBar"></div>
+    </div>
+    <span class="amp-lbl">Pulse Amplitude</span>
   </div>
 
   <!-- Signal feedback -->
@@ -127,13 +138,15 @@
     <span class="sig-txt" id="sigTxt" aria-hidden="true">—</span>
   </div>
 
-  <!-- Live BPM -->
+  <!-- Live BPM + ★ NEW trend arrow -->
   <div class="bpm-row" aria-label="Live heart rate reading">
     <div class="bpm-num" id="liveBpm" aria-atomic="true">--</div>
     <div class="bpm-col">
       <span class="bpm-unit" aria-hidden="true">BPM</span>
       <span class="bpm-pill" id="bpmPill">Calibrating</span>
     </div>
+    <!-- ★ NEW: BPM trend arrow -->
+    <span class="bpm-trend" id="bpmTrend" aria-hidden="true">→</span>
   </div>
 
   <!-- Live waveform -->
@@ -191,6 +204,8 @@
     </div>
     <div class="res-bpm" id="resBpm" aria-label="Beats per minute">72</div>
     <p class="res-bpm-lbl">Beats Per Minute</p>
+    <!-- ★ NEW: BPM trend label -->
+    <span class="res-trend" id="resTrend" aria-label="BPM trend">→ Stable</span>
   </div>
 
   <!-- Session name field -->
@@ -233,12 +248,26 @@
     </div>
   </div>
 
+  <!-- ★ NEW: Heartbeat timeline mini-chart -->
+  <div class="timeline-card" role="region" aria-label="BPM timeline chart">
+    <div class="timeline-hd">
+      <span class="tl-icon" aria-hidden="true">📈</span>
+      <span class="tl-title">Heart Rate Timeline</span>
+    </div>
+    <canvas id="timelineCanvas" class="timeline-canvas"
+      role="img" aria-label="BPM over scan duration" aria-hidden="true"></canvas>
+    <div class="timeline-labels" aria-hidden="true">
+      <span>0s</span><span>10s</span><span>20s</span><span>30s</span>
+    </div>
+  </div>
+
   <!-- Music player card -->
   <div class="card mb-3" role="region" aria-label="Heartbeat music player">
     <div class="card-head">
       <span class="card-head-icon" aria-hidden="true">🎵</span>
       <h3 class="card-title">Heartbeat Music</h3>
-      <span class="player-dur" id="mxDur" aria-label="Music duration">60s</span>
+      <!-- ★ NEW: Phase badge on player -->
+      <span class="phase-tag" id="playerPhase" aria-label="Music phase">Climax</span>
     </div>
 
     <!-- Animated waveform -->
@@ -254,6 +283,7 @@
         <div class="player-title" id="mxTitle">Pulse Serenade in D</div>
         <div class="player-sub"   id="mxSub">72 BPM · Melodic · Balanced</div>
       </div>
+      <span class="player-dur" id="mxDur" aria-label="Music duration">60s</span>
     </div>
 
     <!-- Playback progress -->

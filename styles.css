@@ -687,7 +687,94 @@ input[type=range]::-moz-range-thumb {
 .err-title { font-size:var(--ts-xl); font-weight:800; letter-spacing:-.02em; margin-bottom:var(--s3); }
 .err-msg   { font-size:var(--ts-sm); color:var(--tx2); line-height:1.7; }
 
+/* ═══════════════════════════════════════════════════════════
+   v4 NEW COMPONENTS
+═══════════════════════════════════════════════════════════ */
 
+/* EVOLUTION PHASE BADGE */
+.phase-badge {
+  display:inline-flex; align-items:center;
+  font-size:var(--ts-xs); font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; padding:5px 12px; border-radius:var(--rf);
+  border:1px solid var(--bdr2); color:var(--tx3);
+  background:var(--surf2); margin-top:var(--s2);
+  transition:color var(--std), border-color var(--std), background var(--std);
+}
+.phase-badge[data-phase="1"]{color:var(--teal);border-color:var(--teal-bdr);background:var(--teal-dim);}
+.phase-badge[data-phase="2"]{color:var(--amber);border-color:var(--amber-bdr);background:var(--amber-dim);}
+.phase-badge[data-phase="3"]{color:var(--red);border-color:var(--red-tint);background:var(--red-dim);
+  animation:phaseGlow 2.2s ease-in-out infinite;}
+@keyframes phaseGlow{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 8px var(--red-glow)}}
+
+.phase-tag {
+  font-size:var(--ts-xs); font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; padding:3px 9px; border-radius:var(--rf);
+  border:1px solid var(--red-tint); color:var(--red);
+  background:var(--red-dim); flex-shrink:0;
+}
+
+/* BPM TREND ARROW */
+.bpm-trend {
+  font-size:26px; font-weight:200; color:var(--tx3);
+  line-height:1; align-self:center; margin-left:auto;
+  transition:color var(--std);
+}
+.res-trend {
+  display:inline-block; font-size:var(--ts-xs); font-weight:600;
+  letter-spacing:.07em; color:var(--tx3); margin-top:var(--s1);
+}
+
+/* AMPLITUDE METER */
+.amp-wrap {
+  display:flex; align-items:center; gap:var(--s3);
+  margin-bottom:var(--s3);
+}
+.amp-track {
+  flex:1; height:4px; background:var(--surf3);
+  border-radius:var(--rf); overflow:hidden;
+}
+.amp-bar {
+  height:100%; width:0%;
+  background:linear-gradient(90deg,var(--teal),var(--red));
+  border-radius:var(--rf); transition:width 0.18s ease-out;
+}
+.amp-lbl {
+  font-size:var(--ts-2xs); color:var(--tx3); font-weight:600;
+  letter-spacing:.09em; text-transform:uppercase; white-space:nowrap;
+}
+
+/* CAMERA RING BEAT FLASH */
+.cam-ring.flash {
+  border-color:#fff;
+  box-shadow:0 0 0 8px rgba(255,255,255,.08), 0 0 40px var(--red-glow);
+  transition:box-shadow 0.06s ease-out, border-color 0.06s ease-out;
+}
+
+/* SCAN HEADER WITH PHASE BADGE */
+.scan-hd {
+  text-align:center;
+  padding:var(--s5) 0 var(--s4); flex-shrink:0;
+  display:flex; flex-direction:column; align-items:center; gap:var(--s1);
+}
+
+/* HEARTBEAT TIMELINE CHART */
+.timeline-card {
+  background:var(--surf); border:1px solid var(--bdr);
+  border-radius:var(--r5); padding:var(--s4) var(--s5);
+  margin-bottom:var(--s3);
+}
+.timeline-hd {
+  display:flex; align-items:center; gap:var(--s2);
+  margin-bottom:var(--s3);
+}
+.tl-icon{font-size:15px;}
+.tl-title{font-size:var(--ts-sm);font-weight:700;letter-spacing:-.01em;}
+.timeline-canvas{width:100%;height:52px;display:block;border-radius:var(--r2);}
+.timeline-labels{
+  display:flex;justify-content:space-between;
+  font-size:var(--ts-2xs);color:var(--tx3);font-weight:500;
+  margin-top:var(--s2);letter-spacing:.04em;
+}
 
 /* ═══════════════════════════════════════════════════════════
    TOAST
