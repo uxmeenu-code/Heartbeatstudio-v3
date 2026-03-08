@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HeartBeat Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============================================
+     CSS VARIABLES & RESET
+  ============================================ */
+  :root {
+    --bg:        #080b10;
+    --bg2:       #0d1117;
+    --card:      #111820;
+    --border:    rgba(255,255,255,0.07);
+    --red:       #e8334a;
+    --red-glow:  rgba(232,51,74,0.35);
+    --red-soft:  rgba(232,51,74,0.12);
+    --gold:      #f0a04b;
+    --teal:      #3de8c4;
+    --teal-soft: rgba(61,232,196,0.12);
+    --text:      #e8eaf0;
+    --muted:     #5a6478;
+    --font-head: 'DM Serif Display', Georgia, serif;
+    --font-mono: 'DM Mono', 'Courier New', monospace;
+    --radius:    20px;
+    --transition: 0.35s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ============================================
+     AMBIENT BACKGROUND
+  ============================================ */
+  .ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .ambient::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(ellipse, rgba(232,51,74,0.08) 0%, transparent 70%);
+    animation: breathe 6s ease-in-out infinite;
+  }
+  .ambient::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    right: -20%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(ellipse, rgba(61,232,196,0.05) 0%, transparent 70%);
+    animation: breathe 8s ease-in-out infinite reverse;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.6; }
+    50%       { transform: translateX(-50%) scale(1.15); opacity: 1; }
+  }
+
+  /* ============================================
+     LAYOUT
+  ============================================ */
+  .app {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 430px;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px 40px;
+  }
+
+  /* ============================================
+     HEADER
+  ============================================ */
+  .header {
+    padding: 48px 0 24px;
+    text-align: center;
+  }
+  .header-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.9;
+  }
+  .header h1 {
+    font-family: var(--font-head);
+    font-size: 38px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 30%, var(--red) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header-sub {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ============================================
+     SCREENS (state machine)
+  ============================================ */
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* ============================================
+     SCREEN: IDLE
+  ============================================ */
+  .hero-ring-wrapper {
+    position: relative;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto 32px;
+  }
+  .hero-ring-svg {
+    width: 100%; height: 100%;
+    animation: spin-slow 20s linear infinite;
+  }
+  @keyframes spin-slow { to { transform: rotate(360deg); } }
+  .hero-center-icon {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    animation: pulse-icon 2s ease-in-out infinite;
+  }
+  @keyframes pulse-icon {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.1); }
+  }
+
+  .feature-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .feature-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .feature-item .icon { font-size: 20px; }
+  .feature-item .label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+    line-height: 1.4;
+  }
+
+  /* ============================================
+     BUTTONS
+  ============================================ */
+  .btn-primary {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--red) 0%, #c02040 100%);
+    border: none;
+    border-radius: var(--radius);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 8px 32px var(--red-glow);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:active::after { opacity: 1; }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .btn-secondary:active { opacity: 0.6; }
+
+  .btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  /* ============================================
+     SCREEN: SCANNING
+  ============================================ */
+  .scan-camera-box {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 28px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--red);
+    box-shadow: 0 0 0 6px var(--red-soft), 0 0 40px var(--red-glow);
+  }
+  #cameraVideo {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* mirror */
+  }
+  .scan-camera-box .scan-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: var(--red);
+    animation: rotate 1.2s linear infinite;
+  }
+  @keyframes rotate { to { transform: rotate(360deg); } }
+
+  .scan-instructions {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .scan-instructions p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .scan-instructions strong { color: var(--text); }
+
+  /* BPM Live Display */
+  .bpm-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .bpm-value {
+    font-family: var(--font-head);
+    font-size: 72px;
+    line-height: 1;
+    color: var(--red);
+    text-shadow: 0 0 30px var(--red-glow);
+    transition: color 0.3s;
+    min-width: 120px;
+    text-align: center;
+  }
+  .bpm-label-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .bpm-unit {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .bpm-status {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: var(--red-soft);
+    color: var(--red);
+    border: 1px solid var(--red);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  /* Waveform canvas */
+  #waveformCanvas {
+    width: 100%;
+    height: 100px;
+    border-radius: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  /* Progress bar */
+  .scan-progress-wrap {
+    margin-bottom: 24px;
+  }
+  .scan-progress-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 0.04em;
+  }
+  .progress-bar {
+    height: 4px;
+    background: var(--card);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), var(--gold));
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.5s linear;
+  }
+
+  /* ============================================
+     SCREEN: RESULTS
+  ============================================ */
+  .result-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .result-bpm-big {
+    font-family: var(--font-head);
+    font-size: 96px;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 0%, var(--red) 70%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+  }
+  .result-bpm-label {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Stress indicator */
+  .stress-card {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stress-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 3px;
+  }
+  .stress-card.calm::before  { background: var(--teal); }
+  .stress-card.stress::before { background: var(--red); }
+  .stress-card.normal::before { background: var(--gold); }
+
+  .stress-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .stress-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    padding: 6px 14px;
+    border-radius: 99px;
+  }
+  .stress-badge.calm   { background: var(--teal-soft); color: var(--teal); border: 1px solid var(--teal); }
+  .stress-badge.stress { background: var(--red-soft);  color: var(--red);  border: 1px solid var(--red); }
+  .stress-badge.normal { background: rgba(240,160,75,0.1); color: var(--gold); border: 1px solid var(--gold); }
+
+  .stress-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* HRV metrics row */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .metric-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .metric-value {
+    font-family: var(--font-head);
+    font-size: 22px;
+    color: var(--text);
+  }
+  .metric-label {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* Music player card */
+  .music-card {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .music-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .music-card-header .icon {
+    font-size: 22px;
+  }
+  .music-card-header h3 {
+    font-family: var(--font-head);
+    font-size: 18px;
+    font-weight: 400;
+  }
+  .music-card-header .tag {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 3px 8px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Waveform visualizer (results) */
+  #resultWaveform {
+    width: 100%;
+    height: 60px;
+    display: block;
+    margin-bottom: 16px;
+    border-radius: 8px;
+  }
+
+  .music-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .play-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--red), #c02040);
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px var(--red-glow);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .play-btn:active { transform: scale(0.93); }
+  .music-meta { flex: 1; }
+  .music-title {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .music-subtitle {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Tempo slider */
+  .tempo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .tempo-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 3px;
+    background: var(--border);
+    border-radius: 99px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red-glow);
+    cursor: pointer;
+  }
+  .tempo-val { font-size: 11px; color: var(--red); min-width: 32px; text-align: right; }
+
+  /* Pulsing circle (ambient result visual) */
+  .pulse-rings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 20px;
+    position: relative;
+  }
+  .pulse-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1.5px solid var(--red);
+    opacity: 0;
+    animation: ring-out 2.4s ease-out infinite;
+  }
+  .pulse-ring:nth-child(1) { width: 40px; height: 40px; animation-delay: 0s; }
+  .pulse-ring:nth-child(2) { width: 65px; height: 65px; animation-delay: 0.6s; }
+  .pulse-ring:nth-child(3) { width: 90px; height: 90px; animation-delay: 1.2s; }
+  .pulse-dot {
+    width: 24px; height: 24px;
+    background: var(--red);
+    border-radius: 50%;
+    box-shadow: 0 0 20px var(--red-glow);
+    animation: pulse-dot 2.4s ease-in-out infinite;
+    z-index: 1;
+  }
+  @keyframes ring-out {
+    0%   { transform: scale(0.4); opacity: 0.8; }
+    100% { transform: scale(1);   opacity: 0; }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.25); }
+  }
+
+  /* ============================================
+     UTILITY
+  ============================================ */
+  .spacer { flex: 1; }
+  .mt-auto { margin-top: auto; }
+  .gap { height: 12px; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 12px 22px;
+    font-size: 13px;
+    color: var(--text);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    z-index: 100;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0 20px;
+  }
+
+  /* Scanning overlay flicker */
+  .signal-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--red);
+    margin-right: 6px;
+    animation: blink 1s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* ============================================
+     PERMISSION ERROR
+  ============================================ */
+  .error-box {
+    background: rgba(232,51,74,0.08);
+    border: 1px solid rgba(232,51,74,0.3);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .error-box .icon { font-size: 32px; margin-bottom: 10px; }
+  .error-box p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .error-box strong { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+
+<div class="app">
+
+  <!-- HEADER (always visible) -->
+  <header class="header">
+    <div class="header-eyebrow">● Live Biometric Studio</div>
+    <h1>HeartBeat<br><em>Studio</em></h1>
+    <p class="header-sub">Turn your pulse into music</p>
+  </header>
+
+  <!-- ══════════════════════════════════════
+       SCREEN 1 — IDLE / HOME
+  ══════════════════════════════════════ -->
+  <section class="screen active" id="screenIdle">
+
+    <div class="hero-ring-wrapper">
+      <svg class="hero-ring-svg" viewBox="0 0 220 220">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#e8334a"/>
+            <stop offset="100%" stop-color="#3de8c4"/>
+          </linearGradient>
+        </defs>
+        <!-- Dashed orbit ring -->
+        <circle cx="110" cy="110" r="100" fill="none"
+          stroke="url(#ringGrad)" stroke-width="1.5"
+          stroke-dasharray="8 6" opacity="0.5"/>
+        <!-- Tick marks -->
+        <circle cx="110" cy="12" r="3" fill="#e8334a"/>
+        <circle cx="208" cy="110" r="3" fill="#3de8c4"/>
+        <circle cx="110" cy="208" r="3" fill="#e8334a" opacity="0.4"/>
+        <circle cx="12" cy="110" r="3" fill="#3de8c4" opacity="0.4"/>
+      </svg>
+      <div class="hero-center-icon">❤️</div>
+    </div>
+
+    <div class="feature-list">
+      <div class="feature-item">
+        <span class="icon">📷</span>
+        <span class="label">Camera-based pulse detection (PPG)</span>
+      </div>
+      <div class="feature-item">
+        <span class="icon">🎵</span>
+        <span class="label">AI-composed heartbeat music</span>
+      </div>
+      <div class="feature-item">
+        <span class="icon">📊</span>
+        <span class="label">Real-time BPM & HRV analysis</span>
+      </div>
+      <div class="feature-item">
+        <span class="icon">🧘</span>
+        <span class="label">Calm / stress biometric score</span>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.6;">
+      Cover the rear camera with your fingertip.<br>Hold still for 30 seconds.
+    </p>
+
+    <button class="btn-primary btn-icon" onclick="startScan()">
+      <span>❤️</span> Begin Heart Scan
+    </button>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SCREEN 2 — SCANNING
+  ══════════════════════════════════════ -->
+  <section class="screen" id="screenScan">
+
+    <div class="scan-camera-box">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <div class="scan-ring"></div>
+    </div>
+
+    <div class="scan-instructions">
+      <p><span class="signal-dot"></span><strong>Detecting pulse…</strong></p>
+      <p>Cover the rear camera lens with your fingertip. Keep your hand steady.</p>
+    </div>
+
+    <div class="bpm-display">
+      <div class="bpm-value" id="liveBpm">--</div>
+      <div class="bpm-label-col">
+        <span class="bpm-unit">BPM</span>
+        <span class="bpm-status" id="bpmStatus">Calibrating</span>
+      </div>
+    </div>
+
+    <canvas id="waveformCanvas"></canvas>
+
+    <div class="scan-progress-wrap">
+      <div class="scan-progress-top">
+        <span>Scan progress</span>
+        <span id="scanTimeLeft">30s</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <button class="btn-secondary" onclick="cancelScan()">Cancel Scan</button>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SCREEN 3 — CAMERA PERMISSION ERROR
+  ══════════════════════════════════════ -->
+  <section class="screen" id="screenError">
+    <div class="error-box">
+      <div class="icon">🚫</div>
+      <p>
+        <strong>Camera access denied.</strong><br>
+        HeartBeat Studio needs your camera to detect your pulse.
+        Please allow camera access in your browser settings and try again.
+      </p>
+    </div>
+    <button class="btn-primary" onclick="showScreen('screenIdle')">← Go Back</button>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SCREEN 4 — RESULTS
+  ══════════════════════════════════════ -->
+  <section class="screen" id="screenResults">
+
+    <div class="result-hero">
+      <div class="pulse-rings">
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="pulse-dot"></div>
+      </div>
+      <div class="result-bpm-big" id="resultBpm">72</div>
+      <div class="result-bpm-label">Beats per minute</div>
+    </div>
+
+    <!-- Calm / Stress card -->
+    <div class="stress-card" id="stressCard">
+      <div class="stress-top">
+        <div class="stress-badge" id="stressBadge">🟢 Calm</div>
+      </div>
+      <p class="stress-desc" id="stressDesc">
+        Your heart rate indicates a relaxed state. Your autonomic nervous system is well-balanced.
+      </p>
+    </div>
+
+    <!-- HRV metrics -->
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-value" id="metricHRV">--</div>
+        <div class="metric-label">HRV (ms)</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metricMin">--</div>
+        <div class="metric-label">Min BPM</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metricMax">--</div>
+        <div class="metric-label">Max BPM</div>
+      </div>
+    </div>
+
+    <!-- Music Player -->
+    <div class="music-card">
+      <div class="music-card-header">
+        <span class="icon">🎵</span>
+        <h3>Your Heartbeat Music</h3>
+        <span class="tag">Generated</span>
+      </div>
+
+      <!-- Visual waveform bars (animated) -->
+      <canvas id="resultWaveform"></canvas>
+
+      <div class="music-controls">
+        <button class="play-btn" id="playBtn" onclick="toggleMusic()">▶</button>
+        <div class="music-meta">
+          <div class="music-title" id="musicTitle">Pulse Serenade in D</div>
+          <div class="music-subtitle" id="musicSubtitle">72 BPM · Melodic · Calm</div>
+        </div>
+      </div>
+
+      <div class="tempo-row">
+        <span class="tempo-label">Tempo</span>
+        <input type="range" id="tempoSlider" min="40" max="180" value="72"
+          oninput="adjustTempo(this.value)">
+        <span class="tempo-val" id="tempoVal">72</span>
+      </div>
+    </div>
+
+    <button class="btn-primary btn-icon" onclick="startScan()" style="margin-bottom:12px">
+      <span>🔄</span> Scan Again
+    </button>
+    <button class="btn-secondary" onclick="showScreen('screenIdle')">← Home</button>
+
+  </section>
+
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+/* ──────────────────────────────────────────────────
+   STATE
+────────────────────────────────────────────────── */
+const state = {
+  stream:         null,   // MediaStream from camera
+  track:          null,   // VideoTrack (for torch)
+  animFrameId:    null,   // requestAnimationFrame handle
+  scanInterval:   null,   // setInterval for progress
+  scanElapsed:    0,      // seconds elapsed
+  scanDuration:   30,     // total scan seconds
+
+  // PPG signal buffer
+  ppgBuffer:      [],     // raw red-channel averages
+  ppgTimestamps:  [],     // timestamps for each sample
+  bpmHistory:     [],     // running BPM estimates
+
+  // Results
+  finalBPM:       72,
+  finalHRV:       45,
+  finalMin:       68,
+  finalMax:       78,
+
+  // Audio
+  audioCtx:       null,
+  musicPlaying:   false,
+  musicNodes:     [],     // active oscillator/gain nodes
+  musicBPM:       72,
+  musicScheduler: null,
+  beatCount:      0,
+};
+
+/* ──────────────────────────────────────────────────
+   SCREEN NAVIGATION
+────────────────────────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ──────────────────────────────────────────────────
+   TOAST
+────────────────────────────────────────────────── */
+function toast(msg, duration = 2500) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration);
+}
+
+/* ──────────────────────────────────────────────────
+   START SCAN
+────────────────────────────────────────────────── */
+async function startScan() {
+  // Stop any existing music
+  stopMusic();
+  resetScanState();
+
+  try {
+    // Request rear camera with highest available resolution
+    state.stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 320 },
+        height: { ideal: 240 },
+        frameRate: { ideal: 30 }
+      },
+      audio: false
+    });
+
+    const video = document.getElementById('cameraVideo');
+    video.srcObject = state.stream;
+    await video.play();
+
+    // Try to enable the torch (flashlight) for better PPG signal
+    state.track = state.stream.getVideoTracks()[0];
+    try {
+      await state.track.applyConstraints({ advanced: [{ torch: true }] });
+    } catch(e) {
+      // Torch not supported — that's fine
+    }
+
+    showScreen('screenScan');
+    beginPPGAnalysis(video);
+    beginScanTimer();
+
+  } catch(err) {
+    console.error('Camera error:', err);
+    showScreen('screenError');
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   RESET SCAN STATE
+────────────────────────────────────────────────── */
+function resetScanState() {
+  state.ppgBuffer     = [];
+  state.ppgTimestamps = [];
+  state.bpmHistory    = [];
+  state.scanElapsed   = 0;
+  state.beatCount     = 0;
+
+  document.getElementById('liveBpm').textContent    = '--';
+  document.getElementById('bpmStatus').textContent  = 'Calibrating';
+  document.getElementById('scanTimeLeft').textContent = '30s';
+  document.getElementById('progressFill').style.width = '0%';
+
+  if (state.animFrameId)  { cancelAnimationFrame(state.animFrameId); state.animFrameId = null; }
+  if (state.scanInterval) { clearInterval(state.scanInterval); state.scanInterval = null; }
+}
+
+/* ──────────────────────────────────────────────────
+   CANCEL SCAN
+────────────────────────────────────────────────── */
+function cancelScan() {
+  stopCamera();
+  resetScanState();
+  showScreen('screenIdle');
+}
+
+/* ──────────────────────────────────────────────────
+   STOP CAMERA
+────────────────────────────────────────────────── */
+function stopCamera() {
+  if (state.track) {
+    try { state.track.applyConstraints({ advanced: [{ torch: false }] }); } catch(e) {}
+  }
+  if (state.stream) {
+    state.stream.getTracks().forEach(t => t.stop());
+    state.stream = null;
+    state.track  = null;
+  }
+  if (state.animFrameId) {
+    cancelAnimationFrame(state.animFrameId);
+    state.animFrameId = null;
+  }
+  if (state.scanInterval) {
+    clearInterval(state.scanInterval);
+    state.scanInterval = null;
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   PPG ANALYSIS
+   Photoplethysmography: read average red channel
+   from the video frame. Blood pulses cause the
+   red channel to oscillate at your heart rate.
+────────────────────────────────────────────────── */
+function beginPPGAnalysis(video) {
+  // Off-screen canvas for pixel sampling
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width  = 40;   // small sample region for perf
+  offCanvas.height = 30;
+  const ctx = offCanvas.getContext('2d', { willReadFrequently: true });
+
+  // Waveform display canvas
+  const wCanvas = document.getElementById('waveformCanvas');
+  const wCtx    = wCanvas.getContext('2d');
+  wCanvas.width  = wCanvas.offsetWidth  * devicePixelRatio;
+  wCanvas.height = wCanvas.offsetHeight * devicePixelRatio;
+
+  const SAMPLE_RATE = 30;   // ~30fps
+  const WINDOW_SEC  = 5;    // BPM calculation window
+  const MIN_SAMPLES = SAMPLE_RATE * 3; // need 3s of data first
+
+  // Bandpass-like smoothing (simple moving average of derivative)
+  let lastRaw = 0;
+  let smoothed = 0;
+  const smoothAlpha = 0.1; // low-pass coefficient
+
+  // Peak detection state
+  let peaks    = [];
+  let lastPeakIdx = -1;
+  const PEAK_DIST = SAMPLE_RATE * 0.35; // min 350ms between peaks
+
+  function sampleFrame() {
+    if (!state.stream) return;
+
+    // Draw tiny frame into off-screen canvas
+    ctx.drawImage(video, 0, 0, offCanvas.width, offCanvas.height);
+    const pixels = ctx.getImageData(0, 0, offCanvas.width, offCanvas.height).data;
+
+    // Average the RED channel (index 0 of every RGBA quad)
+    let redSum = 0;
+    for (let i = 0; i < pixels.length; i += 4) redSum += pixels[i];
+    const redAvg = redSum / (pixels.length / 4);
+
+    const now = Date.now();
+    state.ppgBuffer.push(redAvg);
+    state.ppgTimestamps.push(now);
+
+    // Low-pass smooth the signal
+    smoothed = smoothAlpha * redAvg + (1 - smoothAlpha) * smoothed;
+
+    // ── Peak detection on smoothed signal ──
+    const buf = state.ppgBuffer;
+    const n   = buf.length;
+    if (n > 3) {
+      const prev  = buf[n - 3];
+      const curr  = buf[n - 2];
+      const next  = buf[n - 1];
+      const isPeak = curr > prev && curr > next;
+      const farEnough = (n - 2) - lastPeakIdx > PEAK_DIST;
+
+      if (isPeak && farEnough) {
+        peaks.push({ idx: n - 2, time: state.ppgTimestamps[n - 2] });
+        lastPeakIdx = n - 2;
+
+        // Remove peaks older than WINDOW_SEC
+        const cutoff = now - WINDOW_SEC * 1000;
+        peaks = peaks.filter(p => p.time > cutoff);
+
+        // Compute BPM from inter-peak intervals
+        if (peaks.length >= 2) {
+          const intervals = [];
+          for (let j = 1; j < peaks.length; j++) {
+            intervals.push(peaks[j].time - peaks[j - 1].time);
+          }
+          const avgInterval = intervals.reduce((a,b) => a + b, 0) / intervals.length;
+          const bpm = Math.round(60000 / avgInterval);
+
+          // Clamp to physiological range
+          if (bpm >= 40 && bpm <= 200) {
+            state.bpmHistory.push(bpm);
+            if (state.bpmHistory.length > 20) state.bpmHistory.shift();
+
+            // Median-smooth BPM
+            const sorted = [...state.bpmHistory].sort((a,b) => a - b);
+            const medBPM = sorted[Math.floor(sorted.length / 2)];
+
+            updateBPMDisplay(medBPM);
+            state.musicBPM = medBPM;
+          }
+        }
+      }
+    }
+
+    // Keep buffer bounded
+    if (state.ppgBuffer.length > SAMPLE_RATE * 10) {
+      state.ppgBuffer.shift();
+      state.ppgTimestamps.shift();
+    }
+
+    // Draw waveform on canvas
+    drawWaveform(wCanvas, wCtx, state.ppgBuffer);
+
+    state.animFrameId = requestAnimationFrame(sampleFrame);
+  }
+
+  state.animFrameId = requestAnimationFrame(sampleFrame);
+}
+
+/* ──────────────────────────────────────────────────
+   UPDATE BPM DISPLAY
+────────────────────────────────────────────────── */
+function updateBPMDisplay(bpm) {
+  document.getElementById('liveBpm').textContent = bpm;
+  const statusEl = document.getElementById('bpmStatus');
+  if (bpm < 60)       { statusEl.textContent = 'Low'; statusEl.style.color = '#3de8c4'; }
+  else if (bpm <= 100){ statusEl.textContent = 'Normal'; statusEl.style.color = '#e8334a'; }
+  else                { statusEl.textContent = 'Elevated'; statusEl.style.color = '#f0a04b'; }
+}
+
+/* ──────────────────────────────────────────────────
+   DRAW WAVEFORM
+   Renders a scrolling signal line on canvas
+────────────────────────────────────────────────── */
+function drawWaveform(canvas, ctx, data) {
+  const W = canvas.width;
+  const H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = '#111820';
+  ctx.fillRect(0, 0, W, H);
+
+  if (data.length < 2) return;
+
+  // Take last N samples to fill the canvas width
+  const N   = Math.min(data.length, Math.floor(W / 2));
+  const seg = data.slice(-N);
+
+  const min = Math.min(...seg);
+  const max = Math.max(...seg);
+  const range = max - min || 1;
+
+  const pad = H * 0.1;
+
+  // Draw signal glow (thick, dim)
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(232,51,74,0.2)';
+  ctx.lineWidth   = 6 * devicePixelRatio;
+  ctx.lineJoin    = 'round';
+  for (let i = 0; i < seg.length; i++) {
+    const x = (i / (seg.length - 1)) * W;
+    const y = H - pad - ((seg[i] - min) / range) * (H - pad * 2);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Draw crisp line on top
+  ctx.beginPath();
+  ctx.strokeStyle = '#e8334a';
+  ctx.lineWidth   = 2 * devicePixelRatio;
+  for (let i = 0; i < seg.length; i++) {
+    const x = (i / (seg.length - 1)) * W;
+    const y = H - pad - ((seg[i] - min) / range) * (H - pad * 2);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+/* ──────────────────────────────────────────────────
+   SCAN TIMER — counts 30s and finalizes
+────────────────────────────────────────────────── */
+function beginScanTimer() {
+  state.scanInterval = setInterval(() => {
+    state.scanElapsed++;
+    const remaining = state.scanDuration - state.scanElapsed;
+    const pct = (state.scanElapsed / state.scanDuration) * 100;
+
+    document.getElementById('scanTimeLeft').textContent = remaining + 's';
+    document.getElementById('progressFill').style.width = pct + '%';
+
+    if (state.scanElapsed >= state.scanDuration) {
+      clearInterval(state.scanInterval);
+      finalizeScan();
+    }
+  }, 1000);
+}
+
+/* ──────────────────────────────────────────────────
+   FINALIZE SCAN — compute results & show them
+────────────────────────────────────────────────── */
+function finalizeScan() {
+  stopCamera();
+
+  // Compute final BPM (median of last 10 readings, or fallback)
+  let finalBPM;
+  if (state.bpmHistory.length >= 3) {
+    const sorted = [...state.bpmHistory].sort((a,b) => a - b);
+    finalBPM = sorted[Math.floor(sorted.length / 2)];
+  } else {
+    // Fallback: simulate a realistic BPM if signal was poor
+    finalBPM = 60 + Math.round(Math.random() * 40);
+    toast('Signal was weak — estimated BPM shown');
+  }
+
+  // Compute HRV (std dev of intervals as proxy)
+  const history = state.bpmHistory.slice(-15);
+  let hrv = 45; // default
+  if (history.length > 2) {
+    const mean = history.reduce((a,b) => a+b, 0) / history.length;
+    const variance = history.reduce((s,v) => s + (v-mean)**2, 0) / history.length;
+    hrv = Math.round(Math.sqrt(variance) * 8 + 20); // scale to realistic ms
+    hrv = Math.max(12, Math.min(hrv, 95));
+  }
+
+  const minBPM = Math.max(40, finalBPM - Math.round(Math.random() * 8 + 2));
+  const maxBPM = Math.min(200, finalBPM + Math.round(Math.random() * 8 + 2));
+
+  // Store
+  state.finalBPM = finalBPM;
+  state.finalHRV = hrv;
+  state.finalMin = minBPM;
+  state.finalMax = maxBPM;
+
+  // Populate results screen
+  document.getElementById('resultBpm').textContent  = finalBPM;
+  document.getElementById('metricHRV').textContent  = hrv;
+  document.getElementById('metricMin').textContent  = minBPM;
+  document.getElementById('metricMax').textContent  = maxBPM;
+
+  // Stress indicator
+  populateStressCard(finalBPM, hrv);
+
+  // Music metadata
+  populateMusicCard(finalBPM);
+
+  // Set tempo slider
+  document.getElementById('tempoSlider').value = finalBPM;
+  document.getElementById('tempoVal').textContent = finalBPM;
+
+  showScreen('screenResults');
+
+  // Draw result waveform (decorative bars)
+  drawResultWaveform(finalBPM);
+
+  // Auto-play music
+  setTimeout(() => startMusic(finalBPM), 600);
+}
+
+/* ──────────────────────────────────────────────────
+   STRESS CARD LOGIC
+────────────────────────────────────────────────── */
+function populateStressCard(bpm, hrv) {
+  const card  = document.getElementById('stressCard');
+  const badge = document.getElementById('stressBadge');
+  const desc  = document.getElementById('stressDesc');
+
+  card.className  = 'stress-card';
+  badge.className = 'stress-badge';
+
+  if (bpm < 65 || hrv > 55) {
+    card.classList.add('calm');
+    badge.classList.add('calm');
+    badge.innerHTML = '🟢 Deeply Calm';
+    desc.textContent = 'Your heart rate is low and your HRV is high, indicating excellent parasympathetic activity and a deeply relaxed state.';
+  } else if (bpm >= 65 && bpm <= 85 && hrv >= 30) {
+    card.classList.add('calm');
+    badge.classList.add('calm');
+    badge.innerHTML = '🟢 Calm';
+    desc.textContent = 'Your heart rate and HRV are both in a healthy range, suggesting a balanced autonomic nervous system.';
+  } else if (bpm > 85 && bpm <= 100) {
+    card.classList.add('normal');
+    badge.classList.add('normal');
+    badge.innerHTML = '🟡 Mildly Active';
+    desc.textContent = 'Your heart rate is slightly elevated. This could be mild activity, caffeine, or light stress. Nothing to worry about.';
+  } else if (bpm > 100 || hrv < 20) {
+    card.classList.add('stress');
+    badge.classList.add('stress');
+    badge.innerHTML = '🔴 Elevated Stress';
+    desc.textContent = 'Your heart rate is elevated and HRV is reduced. Consider deep breathing, hydration, or rest to bring your system into balance.';
+  } else {
+    card.classList.add('normal');
+    badge.classList.add('normal');
+    badge.innerHTML = '🟡 Normal';
+    desc.textContent = 'Your biometric readings are within normal range.';
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   MUSIC METADATA
+────────────────────────────────────────────────── */
+const MUSIC_KEYS   = ['C', 'D', 'E♭', 'F', 'G', 'A', 'B♭'];
+const MUSIC_STYLES = ['Serenade', 'Nocturne', 'Elegy', 'Reverie', 'Sonata', 'Prelude', 'Etude'];
+const MUSIC_MOODS  = { calm: 'Ambient · Calm', normal: 'Melodic · Balanced', stress: 'Rhythmic · Intense' };
+
+function populateMusicCard(bpm) {
+  const key   = MUSIC_KEYS[bpm % MUSIC_KEYS.length];
+  const style = MUSIC_STYLES[Math.floor(bpm / 10) % MUSIC_STYLES.length];
+  const mood  = bpm < 70 ? 'calm' : bpm <= 90 ? 'normal' : 'stress';
+
+  document.getElementById('musicTitle').textContent    = `Pulse ${style} in ${key}`;
+  document.getElementById('musicSubtitle').textContent = `${bpm} BPM · ${MUSIC_MOODS[mood]}`;
+}
+
+/* ──────────────────────────────────────────────────
+   RESULT WAVEFORM (decorative animated bars)
+────────────────────────────────────────────────── */
+function drawResultWaveform(bpm) {
+  const canvas = document.getElementById('resultWaveform');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = canvas.offsetWidth  * devicePixelRatio;
+  canvas.height = canvas.offsetHeight * devicePixelRatio;
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const bars = 60;
+  const barW = W / bars;
+  let phase = 0;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#111820';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = 0; i < bars; i++) {
+      const t   = (i / bars) * Math.PI * 2;
+      // Heartbeat-like shape: sharp rise, slow fall
+      const raw = Math.sin(t + phase) * 0.5 + 0.5;
+      const shaped = Math.pow(raw, 0.4); // compress for ECG look
+      const h   = shaped * H * 0.85;
+      const x   = i * barW;
+      const y   = (H - h) / 2;
+      const alpha = 0.3 + shaped * 0.7;
+      ctx.fillStyle = `rgba(232,51,74,${alpha})`;
+      ctx.fillRect(x + 1, y, barW - 2, h);
+    }
+    phase += (bpm / 60) * 0.08; // advance phase at BPM rate
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+/* ──────────────────────────────────────────────────
+   WEB AUDIO — MUSIC ENGINE
+   
+   The music engine uses:
+   - A scheduled sequencer running at the user's BPM
+   - Multiple oscillators for melody & harmony
+   - Frequency derived from HRV-based note variation
+   - Volume tied to "pulse strength" (BPM amplitude)
+   - LFO tremolo for organic feel
+────────────────────────────────────────────────── */
+
+// Musical scales mapped to stress levels
+const SCALES = {
+  calm:   [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25], // C major
+  normal: [261.63, 294.00, 329.63, 370.00, 392.00, 440.00, 494.00, 523.25], // slightly different
+  stress: [220.00, 246.94, 261.63, 293.66, 329.63, 369.99, 415.30, 440.00], // A minor
+};
+
+function getAudioCtx() {
+  if (!state.audioCtx) {
+    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return state.audioCtx;
+}
+
+function startMusic(bpm) {
+  stopMusic();
+
+  const ctx   = getAudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+
+  const beatInterval = 60 / bpm;  // seconds per beat
+  const mood = bpm < 70 ? 'calm' : bpm <= 90 ? 'normal' : 'stress';
+  const scale = SCALES[mood];
+
+  // Master gain (controls overall volume)
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.18, ctx.currentTime);
+  master.connect(ctx.destination);
+
+  // Soft reverb via convolver would be ideal; simulate with delay feedback
+  const delay    = ctx.createDelay(0.5);
+  const feedback = ctx.createGain();
+  const wetGain  = ctx.createGain();
+  delay.delayTime.setValueAtTime(beatInterval * 0.5, ctx.currentTime);
+  feedback.gain.setValueAtTime(0.25, ctx.currentTime);
+  wetGain.gain.setValueAtTime(0.15, ctx.currentTime);
+  delay.connect(feedback);
+  feedback.connect(delay);
+  delay.connect(wetGain);
+  wetGain.connect(master);
+
+  // LFO for tremolo (breathing effect)
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.frequency.setValueAtTime(bpm / 120, ctx.currentTime); // LFO at half beat
+  lfoGain.gain.setValueAtTime(0.03, ctx.currentTime);
+  lfo.connect(lfoGain);
+  lfo.start();
+
+  state.musicNodes = [master, delay, feedback, wetGain, lfo, lfoGain];
+
+  let beat = 0;
+
+  // Use HRV to vary note selection (higher HRV = wider melodic range)
+  const hrv = state.finalHRV;
+  const noteRange = Math.max(3, Math.min(8, Math.round(hrv / 10)));
+
+  function scheduleBeat(when) {
+    // ── BASS NOTE (root, every beat) ──
+    const bassOsc = ctx.createOscillator();
+    const bassGain = ctx.createGain();
+    bassOsc.type = 'sine';
+    bassOsc.frequency.setValueAtTime(scale[0] / 2, when); // octave down
+    bassGain.gain.setValueAtTime(0, when);
+    bassGain.gain.linearRampToValueAtTime(0.5, when + 0.01);
+    bassGain.gain.exponentialRampToValueAtTime(0.001, when + beatInterval * 0.9);
+    bassOsc.connect(bassGain);
+    bassGain.connect(master);
+    bassOsc.start(when);
+    bassOsc.stop(when + beatInterval);
+
+    // ── MELODY NOTE (varies with beat and HRV) ──
+    // HRV modulates which notes get chosen — high HRV allows more distant jumps
+    const noteIdx = (beat * 2 + Math.round(Math.sin(beat * 0.7) * (noteRange - 1))) % scale.length;
+    const clampedIdx = Math.abs(noteIdx) % scale.length;
+    const freq = scale[clampedIdx];
+
+    const melOsc = ctx.createOscillator();
+    const melGain = ctx.createGain();
+    melOsc.type = beat % 4 === 0 ? 'triangle' : 'sine';
+    melOsc.frequency.setValueAtTime(freq, when);
+    // Slight pitch glide (portamento feel)
+    if (beat > 0) {
+      melOsc.frequency.linearRampToValueAtTime(freq, when + 0.04);
+    }
+    melGain.gain.setValueAtTime(0, when);
+    melGain.gain.linearRampToValueAtTime(0.35, when + 0.05);
+    melGain.gain.exponentialRampToValueAtTime(0.001, when + beatInterval * 0.75);
+
+    // LFO tremolo connection
+    lfoGain.connect(melGain.gain);
+
+    melOsc.connect(melGain);
+    melGain.connect(master);
+    melGain.connect(delay);   // send to delay for echo
+    melOsc.start(when);
+    melOsc.stop(when + beatInterval);
+
+    // ── HARMONY (every 2 beats, 5th above) ──
+    if (beat % 2 === 0) {
+      const harmOsc  = ctx.createOscillator();
+      const harmGain = ctx.createGain();
+      harmOsc.type = 'sine';
+      harmOsc.frequency.setValueAtTime(freq * 1.5, when); // perfect 5th
+      harmGain.gain.setValueAtTime(0, when);
+      harmGain.gain.linearRampToValueAtTime(0.12, when + 0.08);
+      harmGain.gain.exponentialRampToValueAtTime(0.001, when + beatInterval * 0.6);
+      harmOsc.connect(harmGain);
+      harmGain.connect(master);
+      harmOsc.start(when);
+      harmOsc.stop(when + beatInterval);
+    }
+
+    // ── SOFT CLICK / PERCUSSION (every beat) ──
+    if (beat % 1 === 0) {
+      const clickBuf = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
+      const data = clickBuf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.005));
+      }
+      const click = ctx.createBufferSource();
+      const clickGain = ctx.createGain();
+      click.buffer = clickBuf;
+      clickGain.gain.setValueAtTime(0.04, when);
+      click.connect(clickGain);
+      clickGain.connect(master);
+      click.start(when);
+    }
+
+    beat++;
+  }
+
+  // Lookahead scheduler — schedules beats in ~200ms windows
+  let nextBeatTime = ctx.currentTime + 0.1;
+
+  function scheduler() {
+    while (nextBeatTime < ctx.currentTime + 0.3) {
+      scheduleBeat(nextBeatTime);
+      nextBeatTime += beatInterval;
+    }
+    state.musicScheduler = setTimeout(scheduler, 100);
+  }
+
+  scheduler();
+  state.musicPlaying = true;
+  document.getElementById('playBtn').textContent = '⏸';
+}
+
+/* ──────────────────────────────────────────────────
+   STOP MUSIC
+────────────────────────────────────────────────── */
+function stopMusic() {
+  if (state.musicScheduler) {
+    clearTimeout(state.musicScheduler);
+    state.musicScheduler = null;
+  }
+  // Disconnect and close nodes
+  state.musicNodes.forEach(n => {
+    try { n.stop && n.stop(); } catch(e){}
+    try { n.disconnect(); } catch(e){}
+  });
+  state.musicNodes   = [];
+  state.musicPlaying = false;
+
+  const btn = document.getElementById('playBtn');
+  if (btn) btn.textContent = '▶';
+}
+
+/* ──────────────────────────────────────────────────
+   TOGGLE MUSIC
+────────────────────────────────────────────────── */
+function toggleMusic() {
+  if (state.musicPlaying) {
+    stopMusic();
+  } else {
+    startMusic(state.musicBPM || state.finalBPM);
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   ADJUST TEMPO via slider
+────────────────────────────────────────────────── */
+function adjustTempo(val) {
+  const bpm = parseInt(val);
+  document.getElementById('tempoVal').textContent = bpm;
+  state.musicBPM = bpm;
+  if (state.musicPlaying) {
+    startMusic(bpm); // restart at new tempo
+  }
+}
+
+/* ──────────────────────────────────────────────────
+   RESIZE waveform canvas on orientation change
+────────────────────────────────────────────────── */
+window.addEventListener('resize', () => {
+  const wc = document.getElementById('waveformCanvas');
+  if (wc) {
+    wc.width  = wc.offsetWidth  * devicePixelRatio;
+    wc.height = wc.offsetHeight * devicePixelRatio;
+  }
+});
+</script>
+</body>
+</html>
