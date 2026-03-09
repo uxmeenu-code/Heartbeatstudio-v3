@@ -219,7 +219,7 @@
 
   <div class="btn-row btn-2 mb-3">
     <button class="btn btn-p" onclick="saveSession()"><span>💾</span> Save Session</button>
-    <button class="btn btn-s" onclick="startScan()"><span>🔄</span> Scan Again</button>
+    <button class="btn btn-s" onclick="showScreen('home')"><span>🏠</span> Back to Home</button>
   </div>
   <div class="gap-8"></div>
 </section>
@@ -449,21 +449,39 @@
 </div><!-- /.app -->
 
 
-<!-- ══ NAV ════════════════════════════════════════════════════ -->
-<nav class="main-nav" id="mainNav" aria-label="Main navigation">
-  <button class="nav__tab active" data-screen="scrHome" onclick="showScreen('home')" aria-label="Home" aria-current="page">
-    <svg class="nav__svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+<!-- ══ NAV — 3 tabs: Home · Library · Profile ════════════════ -->
+<nav class="main-nav" id="mainNav" role="navigation" aria-label="Main navigation">
+
+  <!-- HOME -->
+  <button class="nav__tab active" data-screen="scrHome"
+      onclick="showScreen('home')" aria-label="Home" aria-current="page">
+    <svg class="nav__svg" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+    </svg>
     Home
   </button>
-  <button class="nav__tab" data-screen="scrLibrary" onclick="showScreen('library')" aria-label="Library">
-    <svg class="nav__svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
+
+  <!-- LIBRARY -->
+  <button class="nav__tab" data-screen="scrLibrary"
+      onclick="showScreen('library')" aria-label="Library" aria-current="false">
+    <span style="position:relative;display:inline-flex;">
+      <svg class="nav__svg" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+        <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+      </svg>
+      <span class="nav__badge" id="libBadge" hidden></span>
+    </span>
     Library
-    <span class="nav__badge" id="libBadge" hidden></span>
   </button>
-  <button class="nav__tab" data-screen="scrProfile" onclick="showScreen('profile')" aria-label="Profile">
-    <svg class="nav__svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+
+  <!-- PROFILE -->
+  <button class="nav__tab" data-screen="scrProfile"
+      onclick="showScreen('profile')" aria-label="Profile" aria-current="false">
+    <svg class="nav__svg" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+    </svg>
     Profile
   </button>
+
 </nav>
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
