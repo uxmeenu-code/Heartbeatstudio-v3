@@ -1,3 +1,2650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Detect your heartbeat with your phone camera and transform it into personalised music.">
+  <meta name="theme-color" content="#060810">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HB Studio">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>HeartBeat Studio</title>
+  <style>
+/* ================================================================
+   HeartBeat Studio — styles.css v3
+   Premium health-tech. Mobile-first. WCAG AA.
+   Aesthetic: Clinical Precision — deep charcoal, vital crimson,
+   surgical whitespace. Like Apple Health × Withings.
+================================================================ */
+
+/* ── TOKENS ───────────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg:        #060810;
+  --bg1:       #0b0f1a;
+  --surf:      #111826;
+  --surf2:     #171f30;
+  --surf3:     #1d2840;
+
+  /* Borders */
+  --bdr:       rgba(255,255,255,0.06);
+  --bdr2:      rgba(255,255,255,0.10);
+  --bdr3:      rgba(255,255,255,0.16);
+
+  /* Primary — vital crimson */
+  --red:       #e8334a;
+  --red-hi:    #ff4d66;
+  --red-glow:  rgba(232,51,74,0.26);
+  --red-dim:   rgba(232,51,74,0.08);
+  --red-tint:  rgba(232,51,74,0.13);
+
+  /* Accent: teal (calm / success) */
+  --teal:      #29d4a8;
+  --teal-dim:  rgba(41,212,168,0.09);
+  --teal-bdr:  rgba(41,212,168,0.28);
+
+  /* Accent: amber (warning / normal) */
+  --amber:     #e8a430;
+  --amber-dim: rgba(232,164,48,0.09);
+  --amber-bdr: rgba(232,164,48,0.28);
+
+  /* Text */
+  --tx:        #e6e9f4;
+  --tx2:       #8f98b0;
+  --tx3:       #4a5268;
+
+  /* Font */
+  --font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+  /* Type scale */
+  --ts-2xs: 9px;  --ts-xs: 11px; --ts-sm: 13px;
+  --ts-md:  15px; --ts-lg: 19px; --ts-xl: 26px;
+  --ts-2xl: 36px; --ts-hero: 82px;
+
+  /* Spacing */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px;
+  --s5:20px; --s6:24px; --s8:32px; --s10:40px; --s12:48px;
+
+  /* Radius */
+  --r2: 6px; --r3: 10px; --r4: 16px; --r5: 22px; --r6: 28px; --rf: 9999px;
+
+  /* Motion */
+  --ease: cubic-bezier(.25,.46,.45,.94);
+  --fast: 130ms; --std: 240ms; --slow: 380ms;
+
+  /* Layout */
+  --maxw:   430px;
+  --navh:   66px;
+  --st:     env(safe-area-inset-top,    0px);
+  --sb:     env(safe-area-inset-bottom, 0px);
+  --sl:     env(safe-area-inset-left,   0px);
+  --sr:     env(safe-area-inset-right,  0px);
+}
+
+/* ── RESET ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+html {
+  background: var(--bg); -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%; height: 100%;
+}
+body {
+  font-family: var(--font); font-size: var(--ts-sm);
+  line-height: 1.5; color: var(--tx); background: var(--bg);
+  overflow-x: hidden; overscroll-behavior: none;
+  min-height: 100dvh; -webkit-font-smoothing: antialiased;
+}
+
+/* ── FOCUS ────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--red); outline-offset: 3px;
+  border-radius: var(--r2);
+}
+
+/* ── SKIP LINK ────────────────────────────────────────────── */
+.skip { position:absolute; top:-999px; left:var(--s4);
+  background:var(--red); color:#fff; padding:var(--s2) var(--s4);
+  border-radius:var(--r3); font-size:var(--ts-sm); font-weight:600;
+  text-decoration:none; z-index:9000; transition:top var(--fast); }
+.skip:focus { top:var(--s4); }
+
+/* ── AMBIENT GLOW ─────────────────────────────────────────── */
+.ambient {
+  position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+}
+.ambient::before {
+  content:''; position:absolute; top:-20%; left:50%;
+  transform:translateX(-50%);
+  width:520px; height:520px;
+  background:radial-gradient(ellipse, rgba(232,51,74,.06) 0%, transparent 65%);
+  animation:breathe 9s ease-in-out infinite;
+}
+.ambient::after {
+  content:''; position:absolute; bottom:-15%; right:-15%;
+  width:380px; height:380px;
+  background:radial-gradient(ellipse, rgba(41,212,168,.04) 0%, transparent 65%);
+  animation:breathe 12s ease-in-out infinite reverse;
+}
+@keyframes breathe {
+  0%,100%{opacity:.5;transform:translateX(-50%) scale(1)}
+  50%{opacity:1;transform:translateX(-50%) scale(1.1)}
+}
+
+/* ── APP SHELL ────────────────────────────────────────────── */
+.app {
+  position:relative; z-index:1; width:100%;
+  max-width:var(--maxw); margin:0 auto; min-height:100dvh;
+}
+
+/* ── SCREENS ──────────────────────────────────────────────── */
+.screen {
+  display:none; flex-direction:column; min-height:100dvh;
+  padding:
+    calc(var(--st) + var(--s5))
+    calc(var(--sr) + var(--s5))
+    calc(var(--navh) + var(--sb) + var(--s8))
+    calc(var(--sl) + var(--s5));
+  overflow-y:auto; -webkit-overflow-scrolling:touch;
+}
+.screen.active { display:flex; }
+#scrScan  { padding-bottom: calc(var(--sb) + var(--s10)); }
+#scrError { justify-content:center; padding-bottom:calc(var(--sb) + var(--s8)); }
+
+/* ── NAV BAR ──────────────────────────────────────────────── */
+nav.main-nav {
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+  width:100%; max-width:var(--maxw);
+  height:calc(var(--navh) + var(--sb));
+  padding-bottom:var(--sb);
+  background:rgba(6,8,16,.93);
+  backdrop-filter:blur(28px) saturate(1.6);
+  -webkit-backdrop-filter:blur(28px) saturate(1.6);
+  border-top:1px solid var(--bdr2);
+  display:flex; z-index:200;
+}
+.nav__tab {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:3px;
+  background:none; border:none; color:var(--tx3);
+  font-family:var(--font); font-size:var(--ts-2xs);
+  font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+  cursor:pointer; padding:var(--s2) var(--s1); position:relative;
+  transition:color var(--fast) var(--ease);
+}
+.nav__icon { font-size:21px; line-height:1; transition:transform var(--fast); }
+.nav__tab:active .nav__icon { transform:scale(.88); }
+.nav__tab.active { color:var(--red); }
+.nav__tab.active::after {
+  content:''; position:absolute; top:0; left:50%;
+  transform:translateX(-50%);
+  width:26px; height:2px; background:var(--red);
+  border-radius:0 0 var(--rf) var(--rf);
+}
+/* scan-tab hero button removed — scan is not in navigation */
+.nav__badge {
+  position:absolute; top:4px; right:calc(50% - 22px);
+  background:var(--red); color:#fff; font-size:8px; font-weight:700;
+  min-width:15px; height:15px; border-radius:var(--rf);
+  display:flex; align-items:center; justify-content:center;
+  padding:0 3px; border:2px solid var(--bg);
+}
+
+/* ── TYPOGRAPHY ───────────────────────────────────────────── */
+.eyebrow {
+  font-size:var(--ts-xs); letter-spacing:.28em;
+  text-transform:uppercase; color:var(--red);
+  font-weight:600; display:flex; align-items:center; gap:var(--s2);
+}
+.page-h {
+  font-size:var(--ts-2xl); font-weight:800;
+  letter-spacing:-.03em; line-height:1.07; color:var(--tx);
+}
+.page-h em { font-style:normal; font-weight:300; color:var(--tx2); }
+.page-sub { font-size:var(--ts-sm); color:var(--tx3); margin-top:var(--s2); }
+
+/* ── BUTTONS ──────────────────────────────────────────────── */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:var(--s2); width:100%; min-height:54px;
+  padding:var(--s4) var(--s5); border:none; border-radius:var(--r4);
+  font-family:var(--font); font-size:var(--ts-sm); font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase;
+  cursor:pointer; -webkit-user-select:none; user-select:none;
+  position:relative; overflow:hidden;
+  transition:transform var(--fast) var(--ease), opacity var(--fast), box-shadow var(--fast);
+}
+.btn:active { transform:scale(.963); opacity:.92; }
+.btn::after {
+  content:''; position:absolute; inset:0;
+  background:rgba(255,255,255,.07); opacity:0; transition:opacity var(--fast);
+}
+.btn:active::after { opacity:1; }
+.btn-p {
+  background:linear-gradient(148deg, var(--red) 0%, #9c1c30 100%);
+  color:#fff; box-shadow:0 5px 22px var(--red-glow), inset 0 1px 0 rgba(255,255,255,.1);
+}
+.btn-p:hover { box-shadow:0 8px 30px var(--red-glow); }
+.btn-s {
+  background:var(--surf); color:var(--tx2);
+  border:1px solid var(--bdr2);
+}
+.btn-ghost {
+  background:none; border:none; color:var(--tx3);
+  font-size:var(--ts-sm); font-weight:500;
+  min-height:42px; padding:var(--s2) var(--s4);
+}
+/* Icon-only circular button */
+.btn-ico {
+  width:52px; min-height:52px; padding:0;
+  border-radius:var(--rf); font-size:20px; flex-shrink:0;
+}
+.btn-ico.btn-p { box-shadow:0 4px 16px var(--red-glow); }
+.btn-ico.playing {
+  animation:playPulse 1.9s ease-in-out infinite;
+}
+@keyframes playPulse {
+  0%,100%{box-shadow:0 4px 22px var(--red-glow),0 0 0 4px var(--red-tint)}
+  50%    {box-shadow:0 6px 34px rgba(232,51,74,.5),0 0 0 8px rgba(232,51,74,.06)}
+}
+.btn-row { display:grid; gap:var(--s3); }
+.btn-2   { grid-template-columns:1fr 1fr; }
+.btn-2 .btn { font-size:11px; min-height:50px; letter-spacing:.05em; }
+
+/* ── CARDS ────────────────────────────────────────────────── */
+.card {
+  background:var(--surf); border:1px solid var(--bdr);
+  border-radius:var(--r5); padding:var(--s5);
+}
+.card-head {
+  display:flex; align-items:center; gap:var(--s3);
+  margin-bottom:var(--s4);
+}
+.card-head-icon { font-size:17px; flex-shrink:0; }
+.card-title { font-size:var(--ts-md); font-weight:700; letter-spacing:-.01em; flex:1; }
+.card-tag {
+  font-size:var(--ts-xs); color:var(--tx3); border:1px solid var(--bdr2);
+  border-radius:var(--rf); padding:3px 9px; letter-spacing:.07em; font-weight:500;
+}
+
+/* ── CHIPS ────────────────────────────────────────────────── */
+.chip {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:var(--ts-xs); font-weight:600; padding:4px 10px;
+  border-radius:var(--rf); border:1px solid var(--bdr);
+  background:var(--surf2); color:var(--tx3);
+  letter-spacing:.04em; white-space:nowrap;
+}
+.chip-v { color:var(--red-hi); border-color:var(--red-tint); background:var(--red-dim); }
+.chip-t { color:var(--teal); border-color:var(--teal-bdr); background:var(--teal-dim); }
+.chip-a { color:var(--amber); border-color:var(--amber-bdr); background:var(--amber-dim); }
+
+/* ── BLINK DOT ────────────────────────────────────────────── */
+.dot {
+  display:inline-block; width:6px; height:6px;
+  border-radius:50%; background:var(--red);
+  animation:blink 1.1s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.1} }
+
+/* ═══════════════════════════════════════════════════════════
+   HOME SCREEN
+═══════════════════════════════════════════════════════════ */
+.home-hd { padding-top:var(--s4); padding-bottom:var(--s5); }
+
+/* ECG strip */
+.ecg-strip {
+  width:100%; height:54px; display:block;
+  border-radius:var(--r4);
+  background:var(--surf); border:1px solid var(--bdr);
+  margin-bottom:var(--s5);
+}
+
+.feature-grid {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:var(--s3); margin-bottom:var(--s4);
+}
+.feat {
+  background:var(--surf); border:1px solid var(--bdr);
+  border-radius:var(--r4); padding:var(--s3);
+  display:flex; flex-direction:column; gap:var(--s1);
+}
+.feat-icon { font-size:18px; }
+.feat-lbl  { font-size:var(--ts-xs); color:var(--tx3); line-height:1.45; }
+
+.how-to {
+  background:var(--surf); border:1px solid var(--bdr);
+  border-radius:var(--r4); padding:var(--s4);
+  display:flex; gap:var(--s3); align-items:flex-start;
+  margin-bottom:var(--s5);
+}
+.how-to-icon { font-size:19px; flex-shrink:0; padding-top:1px; }
+.how-to-txt  { font-size:var(--ts-sm); color:var(--tx2); line-height:1.65; }
+.how-to-txt strong { color:var(--tx); font-weight:600; }
+
+.cta-anchor { margin-top:auto; }
+
+/* ═══════════════════════════════════════════════════════════
+   SCAN SCREEN
+═══════════════════════════════════════════════════════════ */
+.scan-hd {
+  text-align:center;
+  padding:var(--s6) 0 var(--s5); flex-shrink:0;
+}
+.scan-lbl {
+  font-size:var(--ts-xs); letter-spacing:.26em; text-transform:uppercase;
+  color:var(--red); font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+  gap:var(--s2); margin-bottom:var(--s2);
+}
+.scan-title {
+  font-size:var(--ts-xl); font-weight:800; letter-spacing:-.025em;
+}
+
+/* Camera */
+.cam-wrap {
+  position:relative; width:156px; height:156px;
+  margin:0 auto var(--s5); flex-shrink:0;
+}
+.cam-vid {
+  width:100%; height:100%; border-radius:50%;
+  object-fit:cover; transform:scaleX(-1); display:block;
+}
+.cam-ring {
+  position:absolute; inset:-4px; border-radius:50%;
+  border:2px solid var(--red);
+  box-shadow:0 0 0 5px var(--red-tint), 0 0 26px var(--red-glow);
+}
+.cam-spin {
+  position:absolute; inset:-10px; border-radius:50%;
+  border:2px solid transparent;
+  border-top-color:var(--red);
+  animation:spin 1.05s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* Feedback strip */
+.sig-strip {
+  display:flex; align-items:flex-start; gap:var(--s3);
+  background:var(--surf); border:1px solid var(--bdr);
+  border-radius:var(--r4); padding:var(--s3) var(--s4);
+  font-size:var(--ts-sm); color:var(--tx2); line-height:1.5;
+  margin-bottom:var(--s3);
+  transition:border-color var(--std), background var(--std), color var(--std);
+}
+.sig-strip.warn { border-color:var(--amber-bdr); background:var(--amber-dim); color:var(--amber); }
+.sig-strip.good { border-color:var(--teal-bdr);  background:var(--teal-dim);  color:var(--teal); }
+.strip-icon { font-size:14px; flex-shrink:0; padding-top:2px; }
+
+/* Signal bars */
+.signal-row {
+  display:flex; align-items:center; gap:var(--s2);
+  margin-bottom:var(--s4);
+}
+.sig-lbl {
+  font-size:var(--ts-xs); color:var(--tx3); font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; min-width:44px;
+}
+.sig-bars { display:flex; gap:3px; align-items:flex-end; }
+.sig-bar  {
+  width:5px; border-radius:3px; background:var(--surf3);
+  transition:background var(--fast), height var(--std);
+}
+.sig-bar.lit { background:var(--teal); }
+.sig-bar:nth-child(1){height:6px} .sig-bar:nth-child(2){height:9px}
+.sig-bar:nth-child(3){height:13px} .sig-bar:nth-child(4){height:17px}
+.sig-bar:nth-child(5){height:21px}
+.sig-txt { font-size:var(--ts-xs); color:var(--teal); font-weight:600; min-width:54px; }
+
+/* Live BPM */
+.bpm-row {
+  display:flex; align-items:center; justify-content:center;
+  gap:var(--s4); margin-bottom:var(--s4);
+}
+.bpm-num {
+  font-size:var(--ts-hero); font-weight:800;
+  letter-spacing:-.06em; line-height:1;
+  color:var(--red); text-shadow:0 0 20px var(--red-glow);
+  min-width:92px; text-align:center;
+  transition:color var(--std), text-shadow var(--std);
+}
+.bpm-col { display:flex; flex-direction:column; gap:var(--s2); }
+.bpm-unit {
+  font-size:var(--ts-xs); letter-spacing:.18em;
+  text-transform:uppercase; color:var(--tx3); font-weight:600;
+}
+.bpm-pill {
+  font-size:var(--ts-xs); font-weight:700;
+  padding:4px 10px; border-radius:var(--rf);
+  border:1px solid currentColor; white-space:nowrap;
+  letter-spacing:.05em; background:var(--red-dim); color:var(--red);
+  transition:color var(--std), background var(--std);
+}
+.bpm-pill.normal   { background:var(--teal-dim);  color:var(--teal); }
+.bpm-pill.elevated { background:var(--amber-dim); color:var(--amber); }
+.bpm-pill.low      { background:var(--surf2);     color:var(--tx2); }
+
+/* Waveform canvas */
+.wave-c {
+  width:100%; height:70px; display:block;
+  border-radius:var(--r4); background:var(--surf);
+  border:1px solid var(--bdr); margin-bottom:var(--s4);
+}
+
+/* Scan progress */
+.scan-prog { margin-bottom:var(--s4); }
+.scan-prog-row {
+  display:flex; justify-content:space-between;
+  font-size:var(--ts-xs); color:var(--tx3); font-weight:500; margin-bottom:var(--s2);
+}
+.prog-track {
+  height:3px; background:var(--surf3);
+  border-radius:var(--rf); overflow:hidden;
+}
+.prog-fill {
+  height:100%;
+  background:linear-gradient(90deg, var(--red), var(--amber));
+  border-radius:var(--rf); width:0%;
+  transition:width .6s linear;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESULTS SCREEN
+═══════════════════════════════════════════════════════════ */
+.res-hd { padding-top:var(--s4); padding-bottom:var(--s4); }
+
+/* BPM hero */
+.res-hero {
+  display:flex; flex-direction:column;
+  align-items:center; margin-bottom:var(--s5);
+}
+.pulse-rings {
+  position:relative; width:70px; height:70px;
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:var(--s3);
+}
+.pulse-ring {
+  position:absolute; border-radius:50%;
+  border:1.5px solid var(--red); opacity:0;
+  animation:ringOut 2.6s ease-out infinite;
+}
+.pulse-ring:nth-child(1){width:22px;height:22px;animation-delay:0s}
+.pulse-ring:nth-child(2){width:44px;height:44px;animation-delay:.65s}
+.pulse-ring:nth-child(3){width:68px;height:68px;animation-delay:1.3s}
+@keyframes ringOut{0%{transform:scale(.35);opacity:.9}100%{transform:scale(1);opacity:0}}
+.pulse-core {
+  width:17px; height:17px; background:var(--red); border-radius:50%;
+  box-shadow:0 0 14px var(--red-glow);
+  animation:corePulse 2.6s ease-in-out infinite; z-index:1;
+}
+@keyframes corePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+.res-bpm {
+  font-size:var(--ts-hero); font-weight:800;
+  letter-spacing:-.055em; line-height:1;
+  background:linear-gradient(155deg,#fff 15%,var(--red) 85%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.res-bpm-lbl {
+  font-size:var(--ts-xs); letter-spacing:.22em;
+  text-transform:uppercase; color:var(--tx3); font-weight:600; margin-top:var(--s1);
+}
+
+/* Name input */
+.name-field {
+  display:flex; align-items:center; gap:var(--s3);
+  background:var(--surf); border:1.5px solid var(--bdr2);
+  border-radius:var(--r4); padding:0 var(--s4); margin-bottom:var(--s3);
+  transition:border-color var(--fast);
+}
+.name-field:focus-within { border-color:var(--red); }
+.name-input {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--tx); font-family:var(--font);
+  font-size:var(--ts-sm); padding:var(--s4) 0;
+}
+.name-input::placeholder { color:var(--tx3); }
+
+/* Generating banner */
+.gen-banner {
+  display:flex; align-items:center; gap:var(--s3);
+  background:var(--amber-dim); border:1px solid var(--amber-bdr);
+  border-radius:var(--r4); padding:var(--s3) var(--s4);
+  font-size:var(--ts-sm); color:var(--amber); margin-bottom:var(--s3);
+  animation:slideUp var(--std) var(--ease);
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.gen-dot {
+  width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0;
+  animation:gdot .72s ease-in-out infinite;
+}
+@keyframes gdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.2;transform:scale(.42)}}
+
+/* Wellness card */
+.wellness {
+  background:var(--surf); border:1px solid var(--bdr);
+  border-left:3px solid transparent;
+  border-radius:var(--r5); padding:var(--s4) var(--s5); margin-bottom:var(--s3);
+}
+.wellness.calm   { border-left-color:var(--teal); }
+.wellness.normal { border-left-color:var(--amber); }
+.wellness.stress { border-left-color:var(--red); }
+.wellness-badge {
+  display:inline-flex; align-items:center;
+  font-size:var(--ts-xs); font-weight:700;
+  padding:5px 12px; border-radius:var(--rf);
+  border:1px solid currentColor; margin-bottom:var(--s2);
+  letter-spacing:.05em;
+}
+.wellness-badge.calm   { color:var(--teal);  background:var(--teal-dim); }
+.wellness-badge.normal { color:var(--amber); background:var(--amber-dim); }
+.wellness-badge.stress { color:var(--red);   background:var(--red-dim); }
+.wellness-desc { font-size:var(--ts-xs); color:var(--tx2); line-height:1.65; }
+
+/* Metrics */
+.metrics {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:var(--s2); margin-bottom:var(--s3);
+}
+.met {
+  background:var(--surf); border:1px solid var(--bdr);
+  border-radius:var(--r4); padding:var(--s3) var(--s2); text-align:center;
+}
+.met-val {
+  font-size:var(--ts-xl); font-weight:800;
+  letter-spacing:-.03em; line-height:1; color:var(--tx);
+}
+.met-lbl {
+  font-size:var(--ts-2xs); letter-spacing:.1em;
+  text-transform:uppercase; color:var(--tx3); font-weight:600; margin-top:var(--s1);
+}
+
+/* Player */
+.player-wave {
+  width:100%; height:48px; display:block;
+  border-radius:var(--r2); margin-bottom:var(--s3);
+}
+.player-row {
+  display:flex; align-items:center; gap:var(--s3); margin-bottom:var(--s3);
+}
+.player-info { flex:1; min-width:0; }
+.player-title {
+  font-size:var(--ts-sm); font-weight:700; letter-spacing:-.01em;
+  color:var(--tx); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.player-sub { font-size:var(--ts-xs); color:var(--tx3); margin-top:2px; }
+.player-dur {
+  font-size:var(--ts-xs); font-weight:700;
+  color:var(--teal); border:1px solid var(--teal-bdr);
+  border-radius:var(--rf); padding:3px 8px; flex-shrink:0;
+}
+
+/* Playback bar */
+.pb-bar { margin-bottom:var(--s3); }
+.pb-track {
+  height:3px; background:var(--surf3);
+  border-radius:var(--rf); overflow:hidden; margin-bottom:var(--s2);
+}
+.pb-fill {
+  height:100%;
+  background:linear-gradient(90deg, var(--red), var(--amber));
+  border-radius:var(--rf); width:0%; transition:width 1s linear;
+}
+.pb-times {
+  display:flex; justify-content:space-between;
+  font-size:var(--ts-2xs); color:var(--tx3); font-weight:500;
+}
+
+/* Tempo */
+.tempo-row { display:flex; align-items:center; gap:var(--s3); }
+.tempo-lbl { font-size:var(--ts-xs); color:var(--tx3); font-weight:600; min-width:44px; }
+input[type=range] {
+  flex:1; -webkit-appearance:none; appearance:none;
+  height:3px; background:var(--surf3); border-radius:var(--rf); outline:none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none; width:18px; height:18px;
+  border-radius:50%; background:var(--red);
+  box-shadow:0 0 8px var(--red-glow); cursor:pointer;
+}
+input[type=range]::-moz-range-thumb {
+  width:18px; height:18px; border-radius:50%;
+  background:var(--red); border:none; cursor:pointer;
+}
+.tempo-val { font-size:var(--ts-xs); color:var(--red); font-weight:700; min-width:26px; text-align:right; }
+
+/* ═══════════════════════════════════════════════════════════
+   LIBRARY SCREEN
+═══════════════════════════════════════════════════════════ */
+.lib-hd {
+  display:flex; align-items:flex-end; justify-content:space-between;
+  padding:var(--s6) 0 var(--s5); flex-shrink:0;
+}
+.lib-title {
+  font-size:var(--ts-2xl); font-weight:800;
+  letter-spacing:-.03em; line-height:1.05;
+}
+.lib-title em { font-style:normal; font-weight:300; color:var(--tx2); }
+.lib-count { font-size:var(--ts-xs); color:var(--tx3); font-weight:600; padding-bottom:4px; letter-spacing:.06em; }
+
+/* Empty state */
+.empty {
+  display:flex; flex-direction:column; align-items:center;
+  text-align:center; padding:var(--s12) var(--s6) var(--s8);
+  gap:var(--s3); flex:1;
+}
+/* hidden attribute must beat display:flex */
+[hidden] { display:none !important; }
+.empty-icon { font-size:54px; opacity:.22; }
+.empty-title { font-size:var(--ts-lg); font-weight:800; letter-spacing:-.02em; }
+.empty-desc { font-size:var(--ts-sm); color:var(--tx3); line-height:1.65; max-width:260px; }
+.empty .btn { width:auto; padding:var(--s3) var(--s8); min-height:46px; }
+
+/* Session cards */
+.sess-card {
+  background:var(--surf); border:1px solid var(--bdr);
+  border-left:3px solid transparent; border-radius:var(--r5);
+  padding:var(--s4) var(--s5); margin-bottom:var(--s3);
+  animation:cardIn var(--std) var(--ease);
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.sess-card.calm   { border-left-color:var(--teal); }
+.sess-card.normal { border-left-color:var(--amber); }
+.sess-card.stress { border-left-color:var(--red); }
+
+.sess-top {
+  display:flex; align-items:flex-start;
+  gap:var(--s2); margin-bottom:var(--s3);
+}
+.sess-name {
+  flex:1; min-width:0; font-size:var(--ts-md); font-weight:700;
+  letter-spacing:-.01em; line-height:1.25; color:var(--tx);
+}
+.sess-name-edit {
+  display:none; flex:1; min-width:0;
+  background:var(--surf2); border:1.5px solid var(--bdr2);
+  border-radius:var(--r3); padding:var(--s2) var(--s3);
+  color:var(--tx); font-family:var(--font); font-size:var(--ts-sm); outline:none;
+}
+.sess-name-edit:focus { border-color:var(--red); }
+.sess-actions { display:flex; gap:var(--s2); flex-shrink:0; }
+.sess-btn {
+  width:32px; height:32px; border-radius:var(--r3);
+  border:1px solid var(--bdr); background:var(--surf2);
+  color:var(--tx3); font-size:13px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all var(--fast);
+}
+.sess-btn:hover { border-color:var(--bdr3); color:var(--tx); }
+.sess-btn.playing { color:var(--red); border-color:var(--red); background:var(--red-dim); }
+.sess-btn.del:hover { color:var(--red); border-color:var(--red); background:var(--red-dim); }
+.sess-chips { display:flex; flex-wrap:wrap; gap:var(--s2); }
+
+/* ═══════════════════════════════════════════════════════════
+   ERROR SCREEN
+═══════════════════════════════════════════════════════════ */
+.err-card {
+  background:var(--surf); border:1px solid rgba(232,51,74,.2);
+  border-radius:var(--r6); padding:var(--s10) var(--s6);
+  text-align:center; margin-bottom:var(--s5);
+}
+.err-icon { font-size:52px; display:block; margin-bottom:var(--s5); }
+.err-title { font-size:var(--ts-xl); font-weight:800; letter-spacing:-.02em; margin-bottom:var(--s3); }
+.err-msg   { font-size:var(--ts-sm); color:var(--tx2); line-height:1.7; }
+
+
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════ */
+.toast {
+  position:fixed;
+  bottom:calc(var(--navh) + var(--sb) + var(--s3));
+  left:50%; transform:translateX(-50%) translateY(10px);
+  background:var(--surf3); border:1px solid var(--bdr3);
+  border-radius:var(--rf); padding:var(--s3) var(--s5);
+  font-size:var(--ts-sm); font-weight:500; color:var(--tx);
+  opacity:0; pointer-events:none;
+  transition:opacity var(--std) var(--ease), transform var(--std) var(--ease);
+  z-index:400; white-space:nowrap;
+  max-width:calc(100vw - var(--s10));
+  overflow:hidden; text-overflow:ellipsis;
+}
+.toast.show  { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.success { border-color:var(--teal-bdr); color:var(--teal); }
+.toast.warn    { border-color:var(--amber-bdr); color:var(--amber); }
+.toast.error   { border-color:var(--red);        color:var(--red-hi); }
+
+
+/* ═══════════════════════════════════════════════════════════
+   v4 — SCAN SCREEN ADDITIONS
+═══════════════════════════════════════════════════════════ */
+
+/* BPM trend row */
+.trend-row {
+  display:flex; align-items:center; gap:var(--s2);
+  padding:var(--s2) var(--s1); margin-bottom:var(--s2);
+  font-size:var(--ts-xs); font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+  transition:color var(--std);
+}
+.trend-icon { font-size:15px; line-height:1; }
+.trend-txt  { flex:1; }
+.hrv-live   {
+  font-size:var(--ts-xs); color:var(--tx3); font-weight:600;
+  margin-left:auto; letter-spacing:.04em;
+  background:var(--surf); border:1px solid var(--bdr);
+  border-radius:var(--rf); padding:3px 9px;
+}
+.trend-rising  { color:var(--red);   }
+.trend-falling { color:var(--teal);  }
+.trend-stable  { color:var(--tx3);   }
+
+/* Heartbeat timeline strip */
+.timeline-strip {
+  display:flex; gap:5px; align-items:center;
+  min-height:12px; margin-bottom:var(--s3);
+  padding:0 var(--s1);
+}
+.tl-dot {
+  width:8px; height:8px; border-radius:50%;
+  opacity:0; flex-shrink:0;
+  animation:tlDotIn .4s var(--ease) forwards;
+}
+@keyframes tlDotIn { to { opacity:1; transform:scale(1); } from { opacity:0; transform:scale(0.3); } }
+.tl-dot.tl-calm     { background:var(--teal); }
+.tl-dot.tl-balanced { background:var(--amber); }
+.tl-dot.tl-stressed { background:var(--red);   }
+.tl-dot.tl-normal   { background:var(--amber); }
+.tl-dot.tl-stress   { background:var(--red);   }
+
+/* Beat flash — waveform canvas border lights up on each detected peak */
+.wave-c {
+  transition: border-color .28s var(--ease), box-shadow .28s var(--ease);
+}
+.wave-c.beat-flash {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 12px var(--red-glow);
+  transition: none;
+}
+
+/* BPM number pulse on each beat */
+.bpm-num.bpm-beat {
+  animation: bpmBeat .26s var(--ease);
+}
+@keyframes bpmBeat {
+  0%   { transform:scale(1);    }
+  40%  { transform:scale(1.08); }
+  100% { transform:scale(1);    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   v4 — RESULTS SCREEN ADDITIONS
+═══════════════════════════════════════════════════════════ */
+
+/* Evolution stage badge */
+.stage-badge {
+  display:inline-flex; align-items:center; gap:var(--s2);
+  background:var(--surf); border:1px solid var(--bdr2);
+  border-radius:var(--rf); padding:5px 13px;
+  font-size:var(--ts-xs); color:var(--tx2); font-weight:700;
+  letter-spacing:.07em; text-transform:uppercase;
+  margin-bottom:var(--s3);
+  transition:border-color var(--std), color var(--std);
+}
+.stage-badge.stage-new {
+  border-color:var(--red-glow);
+  color:var(--tx);
+  animation:stagePop .55s var(--ease);
+}
+@keyframes stagePop {
+  0%  { transform:scale(1); }
+  40% { transform:scale(1.04); }
+  100%{ transform:scale(1); }
+}
+.stage-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--red); flex-shrink:0;
+  animation:blink 1.1s ease-in-out infinite;
+}
+
+/* Play button wrapper for beat ring positioning */
+.play-btn-wrap {
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+
+/* Beat ring — expands outward on every audio beat */
+.beat-ring {
+  position:absolute;
+  width:52px; height:52px;
+  border-radius:50%;
+  border:2px solid var(--red);
+  pointer-events:none;
+  opacity:0;
+}
+.beat-ring.flash {
+  animation:beatRingFlash .42s cubic-bezier(.2,.6,.4,1) forwards;
+}
+@keyframes beatRingFlash {
+  0%   { opacity:.75; transform:scale(1);   }
+  100% { opacity:0;   transform:scale(2.0); }
+}
+
+/* ── UTILITIES ────────────────────────────────────────────── */
+.sr-only {
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+.mt-auto { margin-top:auto; }
+.mb-3    { margin-bottom:var(--s3); }
+.mb-4    { margin-bottom:var(--s4); }
+.gap-4   { height:var(--s4); }
+.gap-8   { height:var(--s8); }
+.sep     { height:1px; background:var(--bdr); margin:var(--s4) 0; }
+
+/* ── REDUCED MOTION ───────────────────────────────────────── */
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { animation-duration:.01ms!important; transition-duration:.01ms!important; }
+  .prog-fill,.pb-fill  { transition:none; }
+}
+
+/* ── HIGH CONTRAST ────────────────────────────────────────── */
+@media (forced-colors:active) {
+  .btn-p { background:ButtonText; color:ButtonFace; forced-color-adjust:none; }
+  .wellness-badge, .chip { border-width:2px; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   v5 — NAV: 3 TABS (no hero scan button)
+═══════════════════════════════════════════════════════════ */
+
+/* SVG nav icons */
+.nav__svg { width:22px; height:22px; display:block; fill:currentColor; flex-shrink:0; }
+.nav__tab:active .nav__svg { width:22px; height:22px; display:block; fill:currentColor; flex-shrink:0; }
+
+/* ═══════════════════════════════════════════════════════════
+   v5 — PROFILE SCREEN
+═══════════════════════════════════════════════════════════ */
+
+.prof-hd {
+  padding: var(--s6) 0 var(--s5); flex-shrink: 0;
+}
+
+/* Avatar + Stats row */
+.prof-hero {
+  display: flex; align-items: center; gap: var(--s5);
+  background: var(--surf); border: 1px solid var(--bdr);
+  border-radius: var(--r5); padding: var(--s5);
+  margin-bottom: var(--s4);
+}
+.prof-avatar {
+  width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(145deg, var(--red) 0%, #6b0e1c 100%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 18px var(--red-glow);
+}
+.prof-avatar-letter {
+  font-size: var(--ts-xl); font-weight: 800;
+  color: #fff; line-height: 1; letter-spacing: -.02em;
+}
+.prof-stats {
+  flex: 1; display: flex; align-items: center; justify-content: space-around;
+}
+.prof-stat { text-align: center; }
+.prof-stat-val {
+  font-size: var(--ts-xl); font-weight: 800;
+  letter-spacing: -.03em; color: var(--tx); line-height: 1;
+}
+.prof-stat-lbl {
+  font-size: var(--ts-2xs); letter-spacing: .09em;
+  text-transform: uppercase; color: var(--tx3); font-weight: 600;
+  margin-top: var(--s1);
+}
+.prof-stat-sep {
+  width: 1px; height: 36px;
+  background: var(--bdr2); flex-shrink: 0;
+}
+
+/* Subscription card */
+.sub-card {
+  display: flex; align-items: center; gap: var(--s4);
+  background: linear-gradient(135deg, rgba(232,51,74,.10) 0%, rgba(232,51,74,.03) 100%);
+  border: 1px solid rgba(232,51,74,.22);
+  border-radius: var(--r5); padding: var(--s4) var(--s5);
+  margin-bottom: var(--s5);
+}
+.sub-card-left { flex: 1; min-width: 0; }
+.sub-pill {
+  display: inline-flex; align-items: center;
+  font-size: var(--ts-xs); font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--amber); background: var(--amber-dim);
+  border: 1px solid var(--amber-bdr);
+  border-radius: var(--rf); padding: 3px 10px;
+  margin-bottom: var(--s2);
+}
+.sub-pill.premium {
+  color: var(--teal); background: var(--teal-dim); border-color: var(--teal-bdr);
+}
+.sub-desc {
+  font-size: var(--ts-xs); color: var(--tx3); line-height: 1.6;
+}
+.btn-upgrade {
+  flex-shrink: 0;
+  background: linear-gradient(148deg, var(--red) 0%, #9c1c30 100%);
+  color: #fff; border: none; border-radius: var(--r4);
+  font-family: var(--font); font-size: var(--ts-xs); font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase;
+  padding: var(--s3) var(--s4); cursor: pointer;
+  box-shadow: 0 4px 16px var(--red-glow);
+  transition: transform var(--fast), box-shadow var(--fast);
+  white-space: nowrap;
+}
+.btn-upgrade:active { transform: scale(.96); }
+
+/* Profile sections */
+.prof-section {
+  margin-bottom: var(--s5);
+}
+.prof-section-title {
+  font-size: var(--ts-sm); font-weight: 700;
+  letter-spacing: .03em; color: var(--tx);
+  margin-bottom: var(--s3);
+}
+.prof-section-sub {
+  font-size: var(--ts-xs); color: var(--tx3); margin-bottom: var(--s4);
+  line-height: 1.55;
+}
+.prof-field {
+  margin-bottom: var(--s3);
+}
+.prof-field-row {
+  display: flex; gap: var(--s3); margin-bottom: var(--s3);
+}
+.prof-field-half { flex: 1; min-width: 0; }
+.prof-label {
+  display: block; font-size: var(--ts-xs); font-weight: 600;
+  color: var(--tx3); letter-spacing: .06em; text-transform: uppercase;
+  margin-bottom: var(--s2);
+}
+.prof-opt { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.prof-input {
+  width: 100%; background: var(--surf); border: 1.5px solid var(--bdr2);
+  border-radius: var(--r4); padding: var(--s3) var(--s4);
+  color: var(--tx); font-family: var(--font); font-size: var(--ts-sm);
+  outline: none; transition: border-color var(--fast);
+  -webkit-appearance: none; appearance: none;
+}
+.prof-input:focus { border-color: var(--red); }
+.prof-input::placeholder { color: var(--tx3); }
+.prof-select { cursor: pointer; }
+.prof-select option { background: var(--surf2); }
+
+/* Goal grid */
+.goal-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--s3);
+}
+.goal-btn {
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--s2); padding: var(--s4) var(--s3);
+  background: var(--surf); border: 1.5px solid var(--bdr2);
+  border-radius: var(--r4); cursor: pointer;
+  transition: border-color var(--std), background var(--std), transform var(--fast);
+}
+.goal-btn:active { transform: scale(.97); }
+.goal-btn[aria-checked="true"] {
+  border-color: var(--red); background: var(--red-dim);
+}
+.goal-icon { font-size: 26px; line-height: 1; }
+.goal-lbl {
+  font-size: var(--ts-xs); font-weight: 700;
+  color: var(--tx2); text-align: center; line-height: 1.3;
+  letter-spacing: .02em;
+}
+.goal-btn[aria-checked="true"] .goal-lbl { color: var(--tx); }
+
+/* App info footer */
+.app-info {
+  text-align: center; padding: var(--s5) 0 var(--s3);
+  border-top: 1px solid var(--bdr);
+}
+.app-info-name {
+  font-size: var(--ts-xs); font-weight: 700;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--tx3); margin-bottom: var(--s1);
+}
+.app-info-ver { font-size: var(--ts-xs); color: var(--tx3); }
+.app-info-link {
+  color: var(--red); cursor: pointer; text-decoration: underline;
+}
+
+/* ── LIBRARY: inline edit Save button ────────────────────── */
+.sess-save-btn {
+  display: none;
+  height: 32px; padding: 0 var(--s3);
+  border-radius: var(--r3);
+  border: none; background: var(--red); color: #fff;
+  font-family: var(--font); font-size: var(--ts-xs);
+  font-weight: 700; letter-spacing: .04em;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  transition: opacity var(--fast);
+}
+.sess-save-btn:active { opacity: .8; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   v5 ADDITIONS
+═══════════════════════════════════════════════════════════ */
+
+/* NAV — svg icons */
+.nav__svg { width:22px; height:22px; display:block; fill:currentColor; flex-shrink:0; }
+.nav__tab:active .nav__svg { width:22px; height:22px; display:block; fill:currentColor; flex-shrink:0; }
+
+/* ── USAGE BAR ─────────────────────────────────────────────── */
+.usage-bar {
+  background: var(--surf); border: 1px solid var(--bdr2);
+  border-radius: var(--r4); padding: var(--s3) var(--s4);
+  margin-bottom: var(--s4);
+  animation: slideUp var(--std) var(--ease);
+}
+.usage-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.usage-bar-label { font-size: var(--ts-xs); color: var(--tx3); font-weight: 600; letter-spacing: .04em; }
+.usage-chips { display: flex; gap: 5px; }
+.usage-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--red); box-shadow: 0 0 6px var(--red-glow);
+  transition: background var(--std);
+}
+.usage-dot.used { background: var(--surf3); box-shadow: none; }
+
+/* ── VOLUME ROW ────────────────────────────────────────────── */
+.vol-row { margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--bdr); }
+.vol-icon { width: 14px; height: 14px; fill: currentColor; vertical-align: middle; }
+
+/* ── PROFILE SCREEN ────────────────────────────────────────── */
+.prof-hd { padding: var(--s6) 0 var(--s5); flex-shrink: 0; }
+
+.prof-hero {
+  display: flex; align-items: center; gap: var(--s5);
+  background: var(--surf); border: 1px solid var(--bdr);
+  border-radius: var(--r5); padding: var(--s5); margin-bottom: var(--s4);
+}
+.prof-avatar {
+  width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(145deg, var(--red) 0%, #6b0e1c 100%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 18px var(--red-glow);
+}
+.prof-avatar-letter { font-size: var(--ts-xl); font-weight: 800; color: #fff; line-height: 1; }
+.prof-stats { flex: 1; display: flex; align-items: center; justify-content: space-around; }
+.prof-stat { text-align: center; }
+.prof-stat-val { font-size: var(--ts-xl); font-weight: 800; letter-spacing: -.03em; color: var(--tx); line-height: 1; }
+.prof-stat-lbl { font-size: var(--ts-2xs); letter-spacing: .09em; text-transform: uppercase; color: var(--tx3); font-weight: 600; margin-top: var(--s1); }
+.prof-stat-sep { width: 1px; height: 36px; background: var(--bdr2); flex-shrink: 0; }
+
+.sub-card {
+  display: flex; align-items: center; gap: var(--s4);
+  background: linear-gradient(135deg, rgba(232,51,74,.10) 0%, rgba(232,51,74,.03) 100%);
+  border: 1px solid rgba(232,51,74,.22);
+  border-radius: var(--r5); padding: var(--s4) var(--s5); margin-bottom: var(--s5);
+}
+.sub-card-left { flex: 1; min-width: 0; }
+.sub-pill {
+  display: inline-flex; font-size: var(--ts-xs); font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--amber); background: var(--amber-dim); border: 1px solid var(--amber-bdr);
+  border-radius: var(--rf); padding: 3px 10px; margin-bottom: var(--s2);
+}
+.sub-pill.premium { color: var(--teal); background: var(--teal-dim); border-color: var(--teal-bdr); }
+.sub-desc { font-size: var(--ts-xs); color: var(--tx3); line-height: 1.6; }
+.btn-upgrade {
+  flex-shrink: 0;
+  background: linear-gradient(148deg, var(--red) 0%, #9c1c30 100%);
+  color: #fff; border: none; border-radius: var(--r4);
+  font-family: var(--font); font-size: var(--ts-xs); font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase;
+  padding: var(--s3) var(--s4); cursor: pointer;
+  box-shadow: 0 4px 16px var(--red-glow);
+  transition: transform var(--fast), box-shadow var(--fast); white-space: nowrap;
+}
+.btn-upgrade:active { transform: scale(.96); }
+
+.prof-section { margin-bottom: var(--s5); }
+.prof-section-title { font-size: var(--ts-sm); font-weight: 700; color: var(--tx); margin-bottom: var(--s3); }
+.prof-section-sub { font-size: var(--ts-xs); color: var(--tx3); margin-bottom: var(--s4); line-height: 1.55; }
+.prof-field { margin-bottom: var(--s3); }
+.prof-field-row { display: flex; gap: var(--s3); margin-bottom: var(--s3); }
+.prof-field-half { flex: 1; min-width: 0; }
+.prof-label { display: block; font-size: var(--ts-xs); font-weight: 600; color: var(--tx3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: var(--s2); }
+.prof-opt { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.prof-input {
+  width: 100%; background: var(--surf); border: 1.5px solid var(--bdr2);
+  border-radius: var(--r4); padding: var(--s3) var(--s4);
+  color: var(--tx); font-family: var(--font); font-size: var(--ts-sm);
+  outline: none; transition: border-color var(--fast);
+  -webkit-appearance: none; appearance: none;
+}
+.prof-input:focus { border-color: var(--red); }
+.prof-input::placeholder { color: var(--tx3); }
+.prof-select { cursor: pointer; }
+.prof-select option { background: var(--surf2); }
+
+.goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.goal-btn {
+  display: flex; flex-direction: column; align-items: center; gap: var(--s2);
+  padding: var(--s4) var(--s3);
+  background: var(--surf); border: 1.5px solid var(--bdr2);
+  border-radius: var(--r4); cursor: pointer;
+  transition: border-color var(--std), background var(--std), transform var(--fast);
+}
+.goal-btn:active { transform: scale(.97); }
+.goal-btn[aria-checked="true"] { border-color: var(--red); background: var(--red-dim); }
+.goal-icon { font-size: 26px; line-height: 1; }
+.goal-lbl { font-size: var(--ts-xs); font-weight: 700; color: var(--tx2); text-align: center; line-height: 1.3; }
+.goal-btn[aria-checked="true"] .goal-lbl { color: var(--tx); }
+
+.app-info { text-align: center; padding: var(--s5) 0 var(--s3); border-top: 1px solid var(--bdr); }
+.app-info-name { font-size: var(--ts-xs); font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--tx3); margin-bottom: var(--s1); }
+.app-info-ver { font-size: var(--ts-xs); color: var(--tx3); }
+.app-info-link { color: var(--red); cursor: pointer; text-decoration: underline; }
+
+/* ── UPGRADE SCREEN ────────────────────────────────────────── */
+.upgrade-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; padding: var(--s8) 0; gap: var(--s4);
+}
+.upgrade-icon { font-size: 56px; line-height: 1; margin-bottom: var(--s2); }
+.upgrade-title { font-size: var(--ts-2xl); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.upgrade-sub { font-size: var(--ts-sm); color: var(--tx2); line-height: 1.7; max-width: 300px; }
+
+.upgrade-price-card {
+  background: linear-gradient(145deg, rgba(232,51,74,.12) 0%, rgba(232,51,74,.04) 100%);
+  border: 1.5px solid rgba(232,51,74,.28); border-radius: var(--r5);
+  padding: var(--s5) var(--s8); margin: var(--s2) 0; width: 100%;
+}
+.upgrade-price { font-size: 52px; font-weight: 800; letter-spacing: -.04em; color: var(--tx); line-height: 1; }
+.upgrade-per { font-size: var(--ts-md); font-weight: 400; color: var(--tx3); }
+.upgrade-price-sub { font-size: var(--ts-xs); color: var(--tx3); margin-top: var(--s2); }
+
+.upgrade-features { width: 100%; text-align: left; display: flex; flex-direction: column; gap: var(--s3); }
+.upgrade-feat { display: flex; align-items: center; gap: var(--s3); font-size: var(--ts-sm); color: var(--tx2); }
+.upgrade-feat-icon { color: var(--teal); font-weight: 700; font-size: var(--ts-md); flex-shrink: 0; }
+.btn-upgrade-cta { font-size: var(--ts-sm) !important; min-height: 58px !important; }
+.upgrade-restore { font-size: var(--ts-xs); color: var(--tx3); cursor: pointer; }
+.upgrade-restore span { color: var(--red); text-decoration: underline; }
+
+/* ── LIBRARY: inline edit Save button ──────────────────────── */
+.sess-save-btn {
+  display: none; height: 32px; padding: 0 var(--s3); border-radius: var(--r3);
+  border: none; background: var(--red); color: #fff;
+  font-family: var(--font); font-size: var(--ts-xs); font-weight: 700;
+  letter-spacing: .04em; cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  align-items: center; justify-content: center;
+  transition: opacity var(--fast);
+}
+.sess-save-btn:active { opacity: .8; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   v5.1 — PLAY BUTTON GENERATING STATE
+═══════════════════════════════════════════════════════════ */
+
+/* Disabled / generating state — spinner replaces ▶ icon */
+.btn-ico.generating {
+  pointer-events: none;
+  opacity: 0.7;
+  position: relative;
+  color: transparent !important;   /* hide the ▶ character */
+}
+
+/* CSS spinner overlaid inside the button */
+.btn-ico.generating::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255,255,255,0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: btnSpin 0.75s linear infinite;
+}
+
+@keyframes btnSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Also disable the onclick while generating */
+.btn-ico[disabled] {
+  pointer-events: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   v5.2 — INSTRUMENT ZONE LABEL
+═══════════════════════════════════════════════════════════ */
+.instr-label {
+  display: flex; align-items: center; gap: var(--s2);
+  background: var(--surf); border: 1px solid var(--bdr2);
+  border-radius: var(--rf); padding: 5px 13px;
+  font-size: var(--ts-xs); color: var(--teal); font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase;
+  margin-bottom: var(--s3);
+  animation: slideUp var(--std) var(--ease);
+}
+.instr-icon { font-size: 13px; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   v5.2 — PROFILE VIEW/EDIT MODE
+═══════════════════════════════════════════════════════════ */
+
+/* Header row with Edit button */
+.prof-hd-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: var(--s6) 0 var(--s5);
+  flex-shrink: 0;
+}
+.prof-edit-btn {
+  background: var(--surf); border: 1px solid var(--bdr2);
+  border-radius: var(--r4); color: var(--tx2);
+  font-family: var(--font); font-size: var(--ts-xs);
+  font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: var(--s2) var(--s4); cursor: pointer;
+  transition: border-color var(--fast), color var(--fast);
+  white-space: nowrap; height: 36px;
+  display: flex; align-items: center; gap: var(--s2);
+}
+.prof-edit-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* Info card (view mode) */
+.prof-info-card {
+  background: var(--surf); border: 1px solid var(--bdr);
+  border-radius: var(--r5); padding: var(--s5);
+  margin-bottom: var(--s4);
+}
+.prof-info-empty {
+  display: flex; flex-direction: column; align-items: center;
+  gap: var(--s3); text-align: center; padding: var(--s4) 0;
+}
+.prof-info-empty-icon { font-size: 36px; opacity: .3; }
+.prof-info-empty p { font-size: var(--ts-sm); color: var(--tx3); }
+
+/* Info rows (view mode) */
+.prof-info-rows { display: flex; flex-direction: column; gap: 0; }
+.prof-info-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--bdr);
+}
+.prof-info-row:last-child { border-bottom: none; }
+.prof-info-lbl {
+  font-size: var(--ts-xs); font-weight: 600;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--tx3);
+  min-width: 70px;
+}
+.prof-info-val {
+  font-size: var(--ts-sm); font-weight: 600; color: var(--tx);
+  text-align: right; flex: 1;
+}
+
+/* Edit mode action buttons */
+.prof-edit-actions {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--s3); margin-bottom: var(--s4);
+}
+.prof-edit-actions .btn { font-size: 12px; min-height: 50px; letter-spacing: .05em; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   v6.1 — STRESS INDEX CARD
+═══════════════════════════════════════════════════════════ */
+.stress-card {
+  background: var(--surf); border: 1px solid var(--bdr);
+  border-radius: var(--r5); padding: var(--s5);
+  margin-bottom: var(--s4);
+}
+.stress-header {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: var(--s3);
+}
+.stress-title {
+  font-size: var(--ts-xs); font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--tx2);
+}
+.stress-badge {
+  font-size: var(--ts-xs); font-weight: 800;
+  padding: 3px 10px; border-radius: var(--r4);
+  background: var(--surf2); color: var(--tx2);
+  letter-spacing: .04em;
+}
+.stress-badge.low      { background: rgba(0,212,170,.15); color: var(--teal); }
+.stress-badge.moderate { background: rgba(232,163,71,.15); color: var(--amber); }
+.stress-badge.high     { background: rgba(232,51,74,.15);  color: var(--red); }
+.stress-bar-wrap { margin-bottom: var(--s2); }
+.stress-bar-track {
+  height: 7px; border-radius: 999px;
+  background: linear-gradient(to right, var(--teal), var(--amber), var(--red));
+  position: relative; overflow: hidden; margin-bottom: 4px;
+}
+.stress-bar-fill {
+  position: absolute; inset: 0; right: auto;
+  /* The fill is actually a "mask" overlay from right that covers the bar */
+  /* Use a different approach: just show a marker */
+  height: 100%; background: transparent;
+  border-right: 3px solid white; border-radius: 0 2px 2px 0;
+  transition: width 0.8s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 6px rgba(255,255,255,.7);
+}
+.stress-scale {
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: var(--tx3); letter-spacing: .04em;
+}
+.stress-desc {
+  font-size: var(--ts-xs); color: var(--tx3); line-height: 1.55; margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   v6.1 — ABOUT CARD
+═══════════════════════════════════════════════════════════ */
+.about-card {
+  background: var(--surf); border: 1px solid var(--bdr);
+  border-radius: var(--r5); padding: var(--s6);
+  margin-bottom: var(--s4); text-align: center;
+}
+.about-logo { font-size: 36px; margin-bottom: var(--s2); line-height: 1; }
+.about-name {
+  font-size: var(--ts-lg); font-weight: 900;
+  letter-spacing: -.025em; color: var(--tx); margin: 0 0 4px;
+}
+.about-version {
+  font-size: var(--ts-xs); color: var(--tx3); letter-spacing: .06em;
+  text-transform: uppercase; margin: 0 0 var(--s4);
+}
+.about-desc {
+  font-size: var(--ts-xs); color: var(--tx2); line-height: 1.7;
+  text-align: left; margin-bottom: var(--s4);
+}
+.about-features {
+  display: flex; flex-direction: column; gap: var(--s2);
+  margin-bottom: var(--s4); text-align: left;
+}
+.about-feat {
+  display: flex; align-items: flex-start; gap: var(--s2);
+  font-size: var(--ts-xs); color: var(--tx2); line-height: 1.5;
+}
+.about-feat span { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.about-disclaimer {
+  font-size: 10px; color: var(--tx3); letter-spacing: .04em;
+  font-style: italic; margin: 0;
+}
+
+</style>
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to main content</a>
+<div class="ambient" aria-hidden="true"></div>
+
+<div class="app" id="main">
+
+<!-- ══ HOME ══════════════════════════════════════════════════ -->
+<main class="screen active" id="scrHome" role="main" aria-label="Home">
+  <header class="home-hd">
+    <p class="eyebrow"><span class="dot"></span> Live Biometric Studio</p>
+    <h1 class="page-h">HeartBeat<br><em>Studio</em></h1>
+    <p class="page-sub">Turn your pulse into music</p>
+  </header>
+
+  <canvas id="ecgCanvas" class="ecg-strip" role="img" aria-label="ECG preview" aria-hidden="true"></canvas>
+
+  <!-- Usage meter (shows when approaching/at limit) -->
+  <div class="usage-bar" id="usageBar" hidden role="status">
+    <div class="usage-bar-inner">
+      <span class="usage-bar-label" id="usageBarLabel">Free scans remaining</span>
+      <span class="usage-chips" id="usageChips"></span>
+    </div>
+  </div>
+
+  <div class="feature-grid" role="list">
+    <div class="feat" role="listitem"><span class="feat-icon">📷</span><span class="feat-lbl">Camera PPG detection</span></div>
+    <div class="feat" role="listitem"><span class="feat-icon">🎵</span><span class="feat-lbl">Heartbeat-generated music</span></div>
+    <div class="feat" role="listitem"><span class="feat-icon">📊</span><span class="feat-lbl">Real-time BPM &amp; HRV</span></div>
+    <div class="feat" role="listitem"><span class="feat-icon">💾</span><span class="feat-lbl">Save &amp; replay sessions</span></div>
+  </div>
+
+  <div class="how-to" role="note">
+    <span class="how-to-icon">💡</span>
+    <p class="how-to-txt">Place your <strong>fingertip firmly</strong> over the <strong>rear camera lens</strong> and hold still for <strong>30 seconds</strong>.</p>
+  </div>
+
+  <button id="installBtn" class="btn btn-s mb-3" hidden aria-label="Add to Home Screen">
+    <span>📲</span> Add to Home Screen
+  </button>
+
+  <div class="cta-anchor">
+    <button class="btn btn-p" onclick="startScan()" aria-label="Begin Heart Scan">
+      <span>❤️</span> Begin Heart Scan
+    </button>
+  </div>
+</main>
+
+
+<!-- ══ SCAN ═══════════════════════════════════════════════════ -->
+<section class="screen" id="scrScan" role="region" aria-label="Scanning" aria-live="polite">
+  <header class="scan-hd">
+    <p class="scan-lbl"><span class="dot"></span> Scanning</p>
+    <h2 class="scan-title">Detecting Your<br>Pulse</h2>
+  </header>
+
+  <div class="cam-wrap" role="img" aria-label="Cover lens with fingertip">
+    <video id="camVid" class="cam-vid" autoplay playsinline muted></video>
+    <div class="cam-ring"></div>
+    <div class="cam-spin"></div>
+  </div>
+
+  <div class="sig-strip" id="sigStrip" role="status" aria-live="polite">
+    <span class="strip-icon" id="stripIcon">👆</span>
+    <span id="stripText">Cover the rear camera lens with your fingertip and hold still.</span>
+  </div>
+
+  <div class="signal-row" role="group" aria-label="Signal strength">
+    <span class="sig-lbl">Signal</span>
+    <div class="sig-bars">
+      <div class="sig-bar" id="sb1"></div><div class="sig-bar" id="sb2"></div>
+      <div class="sig-bar" id="sb3"></div><div class="sig-bar" id="sb4"></div>
+      <div class="sig-bar" id="sb5"></div>
+    </div>
+    <span class="sig-txt" id="sigTxt">—</span>
+  </div>
+
+  <div class="trend-row trend-stable" id="trendRow" aria-live="polite">
+    <span class="trend-icon" id="trendIcon">→</span>
+    <span class="trend-txt" id="trendTxt">Stable</span>
+    <span class="hrv-live" id="hrvLive">HRV: --</span>
+  </div>
+
+  <div class="timeline-strip" id="timelineStrip" aria-hidden="true"></div>
+
+  <div class="bpm-row" aria-label="Live heart rate">
+    <div class="bpm-num" id="liveBpm" aria-atomic="true">--</div>
+    <div class="bpm-col">
+      <span class="bpm-unit">BPM</span>
+      <span class="bpm-pill" id="bpmPill">Calibrating</span>
+    </div>
+  </div>
+
+  <canvas id="waveCanvas" class="wave-c" role="img" aria-label="Live waveform" aria-hidden="true"></canvas>
+
+  <div class="scan-prog" role="group" aria-label="Scan progress">
+    <div class="scan-prog-row">
+      <span>Scan in progress</span>
+      <span id="scanTL" aria-live="polite">30s remaining</span>
+    </div>
+    <div class="prog-track" id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0">
+      <div class="prog-fill" id="progFill"></div>
+    </div>
+  </div>
+
+  <div class="mt-auto">
+    <button class="btn btn-s" onclick="cancelScan()">Cancel Scan</button>
+  </div>
+
+  <div class="sr-only" aria-live="polite" id="bpmLive"></div>
+  <div class="sr-only" aria-live="polite" id="sigLive"></div>
+</section>
+
+
+<!-- ══ RESULTS ════════════════════════════════════════════════ -->
+<section class="screen" id="scrResults" role="region" aria-label="Scan results">
+  <header class="res-hd">
+    <p class="eyebrow">✓ Scan Complete</p>
+    <h2 class="page-h">Your Heart<br><em>Rhythm</em></h2>
+  </header>
+
+  <div class="res-hero" role="img" aria-label="Heart rate result">
+    <div class="pulse-rings" aria-hidden="true">
+      <div class="pulse-ring"></div><div class="pulse-ring"></div>
+      <div class="pulse-ring"></div><div class="pulse-core"></div>
+    </div>
+    <div class="res-bpm" id="resBpm">72</div>
+    <p class="res-bpm-lbl">Beats Per Minute</p>
+  </div>
+
+  <div class="name-field" role="group" aria-label="Session name">
+    <span>✏️</span>
+    <input type="text" id="sessNameInput" class="name-input"
+      placeholder="Name this session (e.g. Morning Calm)"
+      maxlength="40" autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+
+  <div class="gen-banner" id="genBanner" hidden role="status" aria-live="polite">
+    <div class="gen-dot"></div> 🎵 Generating your heartbeat music…
+  </div>
+
+  <!-- Instrument zone label -->
+  <div class="instr-label" id="instrLabel" hidden>
+    <span class="instr-icon">🎼</span>
+    <span id="zoneLabel">Piano &amp; Cello</span>
+  </div>
+
+  <div class="stage-badge" id="stageBadge" hidden role="status" aria-live="polite">
+    <span class="stage-dot"></span><span id="stageTxt">Heartbeat Pulse</span>
+  </div>
+
+  <div class="wellness calm" id="wellCard" role="region" aria-label="Wellness assessment">
+    <span class="wellness-badge calm" id="wellBadge">● Calm</span>
+    <p class="wellness-desc" id="wellDesc">Your heart rate indicates a balanced, relaxed state.</p>
+  </div>
+
+  <div class="metrics" role="group" aria-label="Heart metrics">
+    <div class="met"><div class="met-val" id="metHRV">--</div><div class="met-lbl">HRV ms</div></div>
+    <div class="met"><div class="met-val" id="metMin">--</div><div class="met-lbl">Min BPM</div></div>
+    <div class="met"><div class="met-val" id="metMax">--</div><div class="met-lbl">Max BPM</div></div>
+  </div>
+
+  <div class="card mb-3" role="region" aria-label="Music player">
+    <div class="card-head">
+      <span class="card-head-icon">🎵</span>
+      <h3 class="card-title">Heartbeat Music</h3>
+      <span class="player-dur" id="mxDur">60s</span>
+    </div>
+    <canvas id="playerWave" class="player-wave" role="img" aria-label="Waveform" aria-hidden="true"></canvas>
+    <div class="player-row">
+      <div class="play-btn-wrap">
+        <div class="beat-ring" id="beatRing" aria-hidden="true"></div>
+        <button class="btn-ico btn-p" id="playBtn" onclick="toggleMusic()" aria-label="Play">▶</button>
+      </div>
+      <div class="player-info">
+        <div class="player-title" id="mxTitle">Pulse Serenade in D</div>
+        <div class="player-sub" id="mxSub">72 BPM · Melodic · Balanced</div>
+      </div>
+    </div>
+    <div class="pb-bar" role="group" aria-label="Playback progress">
+      <div class="pb-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="pb-fill" id="pbFill"></div>
+      </div>
+      <div class="pb-times"><span id="pbElapsed">0:00</span><span id="pbTotal">1:00</span></div>
+    </div>
+    <div class="tempo-row" role="group" aria-label="Tempo">
+      <label class="tempo-lbl" for="tempoSlider">Tempo</label>
+      <input type="range" id="tempoSlider" min="40" max="180" value="72"
+        oninput="adjustTempo(this.value)" aria-label="Tempo BPM">
+      <span class="tempo-val" id="tempoVal">72</span>
+    </div>
+    <!-- Volume control -->
+    <div class="tempo-row vol-row" role="group" aria-label="Volume">
+      <label class="tempo-lbl" for="volSlider">
+        <svg class="vol-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+        Vol
+      </label>
+      <input type="range" id="volSlider" min="0" max="100" value="80"
+        oninput="adjustVolume(this.value)" aria-label="Volume 0 to 100 percent">
+      <span class="tempo-val" id="volVal">80%</span>
+    </div>
+  </div>
+
+  <div class="btn-row btn-2 mb-3">
+    <button class="btn btn-p" onclick="saveSession()"><span>💾</span> Save Session</button>
+    <button class="btn btn-s" onclick="showScreen('home')"><span>🏠</span> Back to Home</button>
+  </div>
+  <div class="gap-8"></div>
+</section>
+
+
+<!-- ══ LIBRARY ════════════════════════════════════════════════ -->
+<section class="screen" id="scrLibrary" role="region" aria-label="Library">
+  <div class="lib-hd">
+    <h2 class="lib-title">My<br><em>Library</em></h2>
+    <span class="lib-count" id="libCount" aria-live="polite">0 sessions</span>
+  </div>
+
+  <div id="libEmpty" class="empty" hidden>
+    <span class="empty-icon">🫀</span>
+    <h3 class="empty-title">No Sessions Yet</h3>
+    <p class="empty-desc">Complete a scan to save your first heartbeat recording here.</p>
+  </div>
+
+  <div id="libList" role="list" aria-label="Saved sessions"></div>
+  <div class="gap-8"></div>
+</section>
+
+
+<!-- ══ PROFILE ════════════════════════════════════════════════ -->
+<section class="screen" id="scrProfile" role="region" aria-label="Profile">
+  <div class="prof-hd-row">
+    <h2 class="lib-title">My<br><em>Profile</em></h2>
+    <!-- Edit button shown in VIEW mode -->
+    <button class="prof-edit-btn" id="profEditBtn" onclick="enterProfileEdit()" aria-label="Edit profile">
+      ✏️ Edit
+    </button>
+  </div>
+
+  <!-- Avatar + Stats (always visible) -->
+  <div class="prof-hero">
+    <div class="prof-avatar">
+      <span class="prof-avatar-letter" id="profAvatarLetter">?</span>
+    </div>
+    <div class="prof-stats">
+      <div class="prof-stat">
+        <div class="prof-stat-val" id="profStatSessions">0</div>
+        <div class="prof-stat-lbl">Sessions</div>
+      </div>
+      <div class="prof-stat-sep"></div>
+      <div class="prof-stat">
+        <div class="prof-stat-val" id="profStatAvgBpm">--</div>
+        <div class="prof-stat-lbl">Avg BPM</div>
+      </div>
+      <div class="prof-stat-sep"></div>
+      <div class="prof-stat">
+        <div class="prof-stat-val" id="profStatStreak">0</div>
+        <div class="prof-stat-lbl">Day Streak</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW MODE ─────────────────────────────────────── -->
+  <div id="profViewMode">
+    <!-- Saved info display card -->
+    <div class="prof-info-card" id="profInfoCard">
+      <div class="prof-info-empty" id="profInfoEmpty">
+        <span class="prof-info-empty-icon">👤</span>
+        <p>No profile set up yet.</p>
+        <button class="btn btn-s" style="width:auto;min-height:40px;padding:8px 24px;font-size:12px" onclick="enterProfileEdit()">Create Profile</button>
+      </div>
+      <div class="prof-info-rows" id="profInfoRows" hidden>
+        <div class="prof-info-row" id="piName" hidden>
+          <span class="prof-info-lbl">Name</span>
+          <span class="prof-info-val" id="piNameVal">—</span>
+        </div>
+        <div class="prof-info-row" id="piAge" hidden>
+          <span class="prof-info-lbl">Age</span>
+          <span class="prof-info-val" id="piAgeVal">—</span>
+        </div>
+        <div class="prof-info-row" id="piGender" hidden>
+          <span class="prof-info-lbl">Gender</span>
+          <span class="prof-info-val" id="piGenderVal">—</span>
+        </div>
+        <div class="prof-info-row" id="piGoal" hidden>
+          <span class="prof-info-lbl">Goal</span>
+          <span class="prof-info-val" id="piGoalVal">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subscription card (view mode) -->
+    <div class="sub-card" id="subCard" role="region" aria-label="Subscription">
+      <div class="sub-card-left">
+        <span class="sub-pill" id="subPill">Free Plan</span>
+        <p class="sub-desc" id="subDesc">Upgrade to unlock unlimited sessions, advanced HRV insights &amp; exclusive soundscapes.</p>
+      </div>
+      <button class="btn-upgrade" onclick="upgradeSubscription()">Upgrade</button>
+    </div>
+
+    <!-- Stress Index card -->
+    <div class="stress-card" id="stressCard">
+      <div class="stress-header">
+        <span class="stress-title">Stress Index</span>
+        <span class="stress-badge" id="stressBadge">—</span>
+      </div>
+      <div class="stress-bar-wrap">
+        <div class="stress-bar-track">
+          <div class="stress-bar-fill" id="stressBarFill" style="width:0%"></div>
+        </div>
+        <div class="stress-scale">
+          <span>Low</span><span>Moderate</span><span>High</span>
+        </div>
+      </div>
+      <p class="stress-desc" id="stressDesc">Complete a scan to see your stress index.</p>
+    </div>
+
+    <!-- About card -->
+    <div class="about-card">
+      <div class="about-logo">💓</div>
+      <h3 class="about-name">HeartBeat Studio</h3>
+      <p class="about-version">Version 6.1</p>
+      <p class="about-desc">HeartBeat Studio uses your phone's camera to detect subtle colour changes in your fingertip caused by blood flow — a technique called Photoplethysmography (PPG). It measures your heart rate and Heart Rate Variability (HRV) in real time, then composes a unique piece of music that reflects your body's biometric state.</p>
+      <div class="about-features">
+        <div class="about-feat"><span>📷</span> Camera-based PPG heartbeat detection</div>
+        <div class="about-feat"><span>🎵</span> Generative biometric music composition</div>
+        <div class="about-feat"><span>📊</span> Real-time BPM &amp; HRV measurement</div>
+        <div class="about-feat"><span>🧠</span> Stress index from HRV analysis</div>
+        <div class="about-feat"><span>💾</span> Session library with exact music replay</div>
+      </div>
+      <p class="about-disclaimer">For wellness and relaxation purposes only. Not a medical device.</p>
+    </div>
+  </div>
+
+  <!-- ── EDIT MODE ─────────────────────────────────────── -->
+  <div id="profEditMode" hidden>
+    <div class="prof-section">
+      <h3 class="prof-section-title">Personal Info</h3>
+      <div class="prof-field">
+        <label class="prof-label" for="profName">Display Name</label>
+        <input type="text" id="profName" class="prof-input" placeholder="Your name" maxlength="40" autocomplete="name">
+      </div>
+      <div class="prof-field-row">
+        <div class="prof-field prof-field-half">
+          <label class="prof-label" for="profAge">Age <span class="prof-opt">(optional)</span></label>
+          <input type="number" id="profAge" class="prof-input" placeholder="e.g. 32" min="13" max="120">
+        </div>
+        <div class="prof-field prof-field-half">
+          <label class="prof-label" for="profGender">Gender <span class="prof-opt">(optional)</span></label>
+          <select id="profGender" class="prof-input prof-select">
+            <option value="">Prefer not to say</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="nonbinary">Non-binary</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="prof-section">
+      <h3 class="prof-section-title">Wellness Goal</h3>
+      <p class="prof-section-sub">Personalises your music and insights.</p>
+      <div class="goal-grid" role="radiogroup" id="goalGrid">
+        <button class="goal-btn" data-goal="relaxation" onclick="selectGoal('relaxation')" role="radio" aria-checked="false">
+          <span class="goal-icon">🧘</span><span class="goal-lbl">Relaxation</span>
+        </button>
+        <button class="goal-btn" data-goal="fitness" onclick="selectGoal('fitness')" role="radio" aria-checked="false">
+          <span class="goal-icon">🏃</span><span class="goal-lbl">Fitness</span>
+        </button>
+        <button class="goal-btn" data-goal="stress" onclick="selectGoal('stress')" role="radio" aria-checked="false">
+          <span class="goal-icon">🧠</span><span class="goal-lbl">Stress Monitoring</span>
+        </button>
+        <button class="goal-btn" data-goal="sleep" onclick="selectGoal('sleep')" role="radio" aria-checked="false">
+          <span class="goal-icon">🌙</span><span class="goal-lbl">Sleep Improvement</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="prof-edit-actions">
+      <button class="btn btn-p" onclick="saveProfile()">💾 Save Profile</button>
+      <button class="btn btn-s" onclick="cancelProfileEdit()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="gap-8"></div>
+</section>
+
+
+<!-- ══ UPGRADE ════════════════════════════════════════════════ -->
+<section class="screen" id="scrUpgrade" role="region" aria-label="Upgrade to Premium">
+  <div class="upgrade-wrap">
+    <div class="upgrade-icon">💎</div>
+    <h2 class="upgrade-title">Upgrade to Premium</h2>
+    <p class="upgrade-sub">You have used your 3 free heartbeat sessions. Upgrade to continue creating unlimited heartbeat music.</p>
+
+    <div class="upgrade-price-card">
+      <div class="upgrade-price">₹99<span class="upgrade-per">/month</span></div>
+      <p class="upgrade-price-sub">Cancel anytime</p>
+    </div>
+
+    <div class="upgrade-features">
+      <div class="upgrade-feat"><span class="upgrade-feat-icon">✓</span> Unlimited heartbeat scans</div>
+      <div class="upgrade-feat"><span class="upgrade-feat-icon">✓</span> Unlimited music sessions</div>
+      <div class="upgrade-feat"><span class="upgrade-feat-icon">✓</span> Full library access</div>
+      <div class="upgrade-feat"><span class="upgrade-feat-icon">✓</span> Advanced HRV insights</div>
+      <div class="upgrade-feat"><span class="upgrade-feat-icon">✓</span> Exclusive soundscapes</div>
+    </div>
+
+    <button class="btn btn-p btn-upgrade-cta" onclick="activateSubscription()">
+      <span>💎</span> Upgrade Now — ₹99/month
+    </button>
+
+    <!-- Demo: restore already purchased -->
+    <button class="btn btn-ghost" onclick="showScreen('home')">Maybe Later</button>
+
+    <!-- Demo shortcut — simulate already subscribed -->
+    <p class="upgrade-restore" onclick="activateSubscription()">Already subscribed? <span>Restore</span></p>
+  </div>
+</section>
+
+
+<!-- ══ ERROR ══════════════════════════════════════════════════ -->
+<section class="screen" id="scrError" role="alert" aria-label="Error">
+  <div class="err-card">
+    <span class="err-icon">🚫</span>
+    <h2 class="err-title" id="errTitle">Camera Access Denied</h2>
+    <p class="err-msg" id="errMsg">HeartBeat Studio needs camera access. Please allow it in browser settings.</p>
+  </div>
+  <button class="btn btn-p" onclick="showScreen('home')">← Back to Home</button>
+</section>
+
+</div><!-- /.app -->
+
+
+<!-- ══ NAV — 3 tabs: Home · Library · Profile ════════════════ -->
+<nav class="main-nav" id="mainNav" role="navigation" aria-label="Main navigation">
+
+  <!-- HOME -->
+  <button class="nav__tab active" data-screen="scrHome"
+      onclick="showScreen('home')" aria-label="Home" aria-current="page">
+    <svg class="nav__svg" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+    </svg>
+    Home
+  </button>
+
+  <!-- LIBRARY -->
+  <button class="nav__tab" data-screen="scrLibrary"
+      onclick="showScreen('library')" aria-label="Library" aria-current="false">
+    <span style="position:relative;display:inline-flex;">
+      <svg class="nav__svg" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+        <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+      </svg>
+      <span class="nav__badge" id="libBadge" hidden></span>
+    </span>
+    Library
+  </button>
+
+  <!-- PROFILE -->
+  <button class="nav__tab" data-screen="scrProfile"
+      onclick="showScreen('profile')" aria-label="Profile" aria-current="false">
+    <svg class="nav__svg" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+    </svg>
+    Profile
+  </button>
+
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+/* ================================================================
+   HeartBeat Studio — storage.js v5
+   IndexedDB sessions + localStorage for profile/prefs/limits.
+================================================================ */
+'use strict';
+
+const Storage = (() => {
+  const DB_NAME = 'hbs_v3', DB_VER = 1, STORE = 'sessions', LS_KEY = 'hbs_v3_sessions';
+
+  /* ─── localStorage key constants ─── */
+  const LS_PROFILE      = 'hbs_profile';
+  const LS_USAGE        = 'hbs_usage';          /* { freeScansUsed: n } */
+  const LS_SUBSCRIPTION = 'hbs_subscription';   /* { status: "active"|"free" } */
+  const LS_VOLUME       = 'hbs_volume';          /* { level: 0-1 } */
+
+  let db = null, ready = false, _init = null;
+
+  /* ─── IndexedDB init ─── */
+  function init() {
+    if (_init) return _init;
+    _init = new Promise(resolve => {
+      if (!window.indexedDB) { resolve(false); return; }
+      const req = indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains(STORE))
+          d.createObjectStore(STORE, { keyPath: 'id' });
+      };
+      req.onsuccess = e => { db = e.target.result; ready = true; resolve(true); };
+      req.onerror   = () => resolve(false);
+    });
+    return _init;
+  }
+
+  function _tx(mode, fn) {
+    return new Promise((res, rej) => {
+      const req = fn(db.transaction(STORE, mode).objectStore(STORE));
+      req.onsuccess = e => res(e.target.result);
+      req.onerror   = e => rej(e.target.error);
+    });
+  }
+  function _lsGet()    { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; } }
+  function _lsSet(arr) { try { localStorage.setItem(LS_KEY, JSON.stringify(arr)); } catch {} }
+
+  /* ─── Sessions ─── */
+  async function saveSession(s) {
+    await init();
+    if (ready) return _tx('readwrite', st => st.put(s));
+    const all = _lsGet(), i = all.findIndex(x => x.id === s.id);
+    i >= 0 ? all[i] = s : all.unshift(s);
+    _lsSet(all); return s;
+  }
+
+  async function loadSessions() {
+    await init();
+    if (ready) {
+      const all = await _tx('readonly', st => st.getAll());
+      return (all || []).sort((a, b) => b.id - a.id);
+    }
+    return _lsGet();
+  }
+
+  async function deleteSession(id) {
+    await init();
+    if (ready) return _tx('readwrite', st => st.delete(id));
+    _lsSet(_lsGet().filter(s => s.id !== id));
+  }
+
+  async function renameSession(id, name) {
+    await init();
+    if (ready) {
+      const s = await _tx('readonly', st => st.get(id));
+      if (!s) throw new Error('Not found');
+      s.name = name;
+      return _tx('readwrite', st => st.put(s));
+    }
+    const all = _lsGet(), item = all.find(s => s.id === id);
+    if (item) { item.name = name; _lsSet(all); return item; }
+    throw new Error('Not found');
+  }
+
+  function buildSession({ bpm, hrv, minBpm, maxBpm, mood, tempo, name, musicSeed }) {
+    const now  = new Date();
+    const id   = now.getTime();
+    const date = now.toLocaleDateString('en-CA');
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const finalName = (name || '').trim() ||
+      `Session · ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${time}`;
+    return { id, name: finalName, bpm, hrv, minBpm, maxBpm, mood, tempo, date, time, musicSeed: musicSeed||0 };
+  }
+
+  /* ─── Profile ─── */
+  function getProfile() {
+    try { return JSON.parse(localStorage.getItem(LS_PROFILE) || '{}'); } catch { return {}; }
+  }
+  function setProfile(data) {
+    try { localStorage.setItem(LS_PROFILE, JSON.stringify(data)); } catch {}
+  }
+
+  /* ─── Free scan usage ─── */
+  const FREE_LIMIT = 3;
+  function getUsage() {
+    try { return JSON.parse(localStorage.getItem(LS_USAGE) || '{"freeScansUsed":0}'); }
+    catch { return { freeScansUsed: 0 }; }
+  }
+  function incrementUsage() {
+    const u = getUsage();
+    u.freeScansUsed = (u.freeScansUsed || 0) + 1;
+    try { localStorage.setItem(LS_USAGE, JSON.stringify(u)); } catch {}
+    return u;
+  }
+  function resetUsage() {
+    try { localStorage.setItem(LS_USAGE, JSON.stringify({ freeScansUsed: 0 })); } catch {}
+  }
+
+  /* ─── Subscription ─── */
+  function getSubscription() {
+    try { return JSON.parse(localStorage.getItem(LS_SUBSCRIPTION) || '{"status":"free"}'); }
+    catch { return { status: 'free' }; }
+  }
+  function setSubscription(status) {   /* 'active' | 'free' */
+    try { localStorage.setItem(LS_SUBSCRIPTION, JSON.stringify({ status })); } catch {}
+  }
+  function isSubscribed() {
+    return getSubscription().status === 'active';
+  }
+
+  /* ─── Volume preference ─── */
+  function getVolume() {
+    try {
+      const v = JSON.parse(localStorage.getItem(LS_VOLUME) || '{"level":0.8}');
+      return Math.max(0, Math.min(1, v.level ?? 0.8));
+    } catch { return 0.8; }
+  }
+  function setVolume(level) {
+    const clamped = Math.max(0, Math.min(1, level));
+    try { localStorage.setItem(LS_VOLUME, JSON.stringify({ level: clamped })); } catch {}
+    return clamped;
+  }
+
+  /* ─── Scan gate ─── */
+  function canScan() {
+    if (isSubscribed()) return { allowed: true, reason: 'subscribed' };
+    const u = getUsage();
+    if (u.freeScansUsed < FREE_LIMIT) return { allowed: true, reason: 'free', remaining: FREE_LIMIT - u.freeScansUsed };
+    return { allowed: false, reason: 'limit_reached', used: u.freeScansUsed };
+  }
+
+  return {
+    init, saveSession, loadSessions, deleteSession, renameSession, buildSession,
+    /* profile */
+    getProfile, setProfile,
+    /* usage */
+    getUsage, incrementUsage, resetUsage, FREE_LIMIT,
+    /* subscription */
+    getSubscription, setSubscription, isSubscribed, canScan,
+    /* volume */
+    getVolume, setVolume,
+  };
+})();
+
+window.Storage = Storage;
+
+</script>
+<script>
+/* ================================================================
+   HeartBeat Studio — audioEngine.js v6.1
+   SOOTHING BIOMETRIC MUSIC ENGINE
+
+   v6.1 KEY IMPROVEMENTS:
+   ─────────────────────
+   • Seeded deterministic melody — replay sounds IDENTICAL to live
+   • Musical phrase engine: proper stepwise motion, chord emphasis,
+     cadences — no random jumps that sound like "tuning"
+   • Warmth filter on all melodic voices (lowpass ~2kHz)
+   • Chord-aware harmony: always consonant 3rd/5th/6th above melody
+   • Notes always land on pentatonic/safe scale — zero dissonance
+   • Smooth swing via seed, not Math.random() each bar
+   • Seed stored in session — library playback matches original
+
+   INSTRUMENT ZONES (unchanged):
+   < 60 bpm  → Sitar & Drone (Raga Meditation)
+   60-74 bpm → Bansuri Flute & Strings (Gentle Flow)
+   75-90 bpm → Piano & Acoustic Guitar (Melodic Calm)
+   91-100bpm → Marimba & Piano (Warm Rhythm)
+   > 100 bpm → Strings & Tabla (Vital Energy)
+================================================================ */
+'use strict';
+
+const AudioEngine = (() => {
+
+  /* ── Scale builder ── */
+  function _buildScale(rootHz, semitones) {
+    const out = [];
+    for (let oct = -1; oct <= 1; oct++) {
+      semitones.forEach(s => {
+        const f = rootHz * Math.pow(2, (oct * 12 + s) / 12);
+        if (f >= 55 && f <= 1800) out.push(+f.toFixed(3));
+      });
+    }
+    return out.sort((a, b) => a - b);
+  }
+
+  /* ── Seeded xorshift32 PRNG ── */
+  function _mkRand(seed) {
+    let s = (seed >>> 0) || 0xDEADBEEF;
+    return () => { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 0x100000000; };
+  }
+
+  /* ── Instrument profile selector ── */
+  function _getProfile(bpm) {
+
+    /* SITAR & DRONE  < 60 bpm */
+    if (bpm < 60) return {
+      name:'Sitar & Drone', style:'Raga Meditation',
+      scale:_buildScale(146.83,[0,2,3,7,8,10,12]),
+      drone:73.42, droneAmp:0.16,
+      melParts: [{r:1,a:0.44,w:'triangle'},{r:2,a:0.14,w:'sine'},{r:3,a:0.05,w:'sine'}],
+      harmParts:[{r:1,a:0.20,w:'sine'},{r:1.5,a:0.09,w:'sine'}],
+      padParts: [{r:1,a:0.13,w:'sine'},{r:2,a:0.05,w:'sine'}],
+      bassParts:[{r:1,a:0.24,w:'sine'},{r:2,a:0.07,w:'sine'}],
+      melA:0.007,melD:3.6,harmA:0.10,harmD:5.5,padA:0.75,padD:10,bassA:0.04,bassD:2.8,
+      tabla:true,tablaS:false,kick:false,snare:false,hihat:false,
+      tablaAmp:0.24,tablaGrid:[1,0,0,1,0,1,0,0],
+      melGrid: [1,0,0,0,0,0,1,0],harmGrid:[0,0,1,0,0,0,0,0],
+      padGrid: [1,0,0,0,0,0,0,0],bassGrid:[1,0,0,0,1,0,0,0],
+      padDurMul:12,delayR:0.75,delayFB:0.38,delayWet:0.28,
+      revSec:5.5,revWet:0.55,masterVol:1.7,warmCut:1600,
+      lfoHz:0.06,lfoD:0.030,swing:0.042,
+    };
+
+    /* BANSURI FLUTE & STRINGS  60-74 */
+    if (bpm <= 74) return {
+      name:'Bansuri Flute & Strings', style:'Gentle Flow',
+      scale:_buildScale(261.63,[0,2,4,7,9,12]),
+      drone:65.41,droneAmp:0.08,
+      melParts: [{r:1,a:0.46,w:'sine'},{r:2,a:0.12,w:'sine'},{r:3,a:0.04,w:'sine'}],
+      harmParts:[{r:1,a:0.24,w:'sine'},{r:1.002,a:0.19,w:'sine'},{r:2,a:0.07,w:'sine'}],
+      padParts: [{r:1,a:0.13,w:'sine'},{r:2,a:0.05,w:'sine'}],
+      bassParts:[{r:1,a:0.22,w:'triangle'},{r:2,a:0.09,w:'sine'}],
+      melA:0.09,melD:2.9,harmA:0.22,harmD:5.8,padA:0.95,padD:11,bassA:0.07,bassD:2.3,
+      tabla:false,kick:false,snare:false,hihat:true,
+      hihatAmp:0.055,hihatGrid:[0,0,1,0,0,0,1,0],
+      melGrid: [1,0,0,0,1,0,0,0],harmGrid:[0,0,1,0,0,0,1,0],
+      padGrid: [1,0,0,0,0,0,0,0],bassGrid:[1,0,0,0,1,0,0,0],
+      padDurMul:9,delayR:0.67,delayFB:0.32,delayWet:0.22,
+      revSec:4.2,revWet:0.50,masterVol:1.9,warmCut:1800,
+      lfoHz:0.11,lfoD:0.032,swing:0.026,
+    };
+
+    /* PIANO & ACOUSTIC GUITAR  75-90 */
+    if (bpm <= 90) return {
+      name:'Piano & Acoustic Guitar', style:'Melodic Calm',
+      scale:_buildScale(220.00,[0,2,4,5,7,9,11,12]),
+      drone:null,droneAmp:0,
+      melParts: [{r:1,a:0.52,w:'triangle'},{r:2,a:0.24,w:'sine'},{r:3,a:0.10,w:'sine'},{r:4,a:0.04,w:'sine'}],
+      harmParts:[{r:1,a:0.28,w:'triangle'},{r:2,a:0.15,w:'sine'},{r:3,a:0.06,w:'sine'}],
+      padParts: [{r:1,a:0.15,w:'sine'},{r:2,a:0.06,w:'sine'}],
+      bassParts:[{r:1,a:0.28,w:'triangle'},{r:2,a:0.11,w:'sine'}],
+      melA:0.004,melD:2.3,harmA:0.012,harmD:1.9,padA:0.58,padD:7.5,bassA:0.008,bassD:1.7,
+      tabla:false,kick:true,snare:false,hihat:true,
+      kickAmp:0.28,kickGrid:[1,0,0,0,1,0,0,0],
+      hihatAmp:0.08,hihatGrid:[0,1,0,1,0,1,0,1],
+      melGrid: [1,0,0,1,0,0,1,0],harmGrid:[0,0,1,0,0,1,0,0],
+      padGrid: [1,0,0,0,1,0,0,0],bassGrid:[1,0,0,1,0,0,1,0],
+      padDurMul:6.5,delayR:0.50,delayFB:0.22,delayWet:0.16,
+      revSec:2.8,revWet:0.32,masterVol:1.7,warmCut:2200,
+      lfoHz:0.20,lfoD:0.018,swing:0.015,
+    };
+
+    /* MARIMBA & PIANO  91-100 */
+    if (bpm <= 100) return {
+      name:'Marimba & Piano', style:'Warm Rhythm',
+      scale:_buildScale(196.00,[0,2,4,7,9,12]),
+      drone:null,droneAmp:0,
+      melParts: [{r:1,a:0.48,w:'triangle'},{r:4,a:0.18,w:'sine'},{r:2,a:0.10,w:'sine'}],
+      harmParts:[{r:1,a:0.32,w:'triangle'},{r:2,a:0.15,w:'sine'},{r:3,a:0.06,w:'sine'}],
+      padParts: [{r:1,a:0.14,w:'sine'},{r:2,a:0.06,w:'sine'}],
+      bassParts:[{r:1,a:0.30,w:'triangle'},{r:2,a:0.13,w:'sine'}],
+      melA:0.003,melD:1.0,harmA:0.007,harmD:1.5,padA:0.44,padD:5.8,bassA:0.006,bassD:1.3,
+      tabla:false,kick:true,snare:true,hihat:true,
+      kickAmp:0.34,kickGrid:[1,0,0,0,1,0,0,0],
+      snareAmp:0.22,snareGrid:[0,0,1,0,0,0,1,0],
+      hihatAmp:0.09,hihatGrid:[1,0,1,1,0,1,1,0],
+      melGrid: [1,0,1,0,0,1,0,0],harmGrid:[0,0,1,0,0,0,1,0],
+      padGrid: [1,0,0,0,1,0,0,0],bassGrid:[1,0,1,0,1,0,0,0],
+      padDurMul:5,delayR:0.50,delayFB:0.20,delayWet:0.14,
+      revSec:1.8,revWet:0.24,masterVol:1.7,warmCut:2500,
+      lfoHz:0.26,lfoD:0.014,swing:0.012,
+    };
+
+    /* STRINGS & TABLA  > 100 */
+    return {
+      name:'Strings & Tabla', style:'Vital Energy',
+      scale:_buildScale(246.94,[0,2,4,7,9,12]),
+      drone:61.74,droneAmp:0.10,
+      melParts: [{r:1,a:0.38,w:'sawtooth'},{r:1.001,a:0.30,w:'sawtooth'},{r:2,a:0.13,w:'sine'}],
+      harmParts:[{r:1,a:0.26,w:'sawtooth'},{r:2,a:0.11,w:'sine'}],
+      padParts: [{r:1,a:0.14,w:'sine'},{r:2,a:0.05,w:'sine'}],
+      bassParts:[{r:1,a:0.32,w:'sawtooth'},{r:2,a:0.13,w:'sine'}],
+      melA:0.08,melD:1.5,harmA:0.13,harmD:1.9,padA:0.34,padD:4.2,bassA:0.01,bassD:1.0,
+      tabla:true,tablaS:true,kick:false,snare:false,hihat:false,
+      tablaAmp:0.30,tablaGrid:[1,0,1,1,0,1,0,1],
+      melGrid: [1,0,1,0,1,0,0,1],harmGrid:[0,1,0,0,0,1,0,0],
+      padGrid: [1,0,0,0,0,0,0,0],bassGrid:[1,0,1,0,1,1,0,0],
+      padDurMul:4,delayR:0.33,delayFB:0.16,delayWet:0.12,
+      revSec:1.2,revWet:0.18,masterVol:1.6,warmCut:3000,
+      lfoHz:0.50,lfoD:0.010,swing:0.006,
+    };
+  }
+
+  const STAGE_NAMES = ['Heartbeat Pulse','Melody Active','Harmony Unlocked','Full Spectrum'];
+  const TITLE_WORDS = ['Serenity','Stillness','Drift','Reverie','Current',
+    'Resonance','Solace','Meridian','Bloom','Tide','Aether','Clarity'];
+  const CHROMATIC = ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'];
+
+  /* Engine state */
+  let _ctx=null,_master=null,_volNode=null;
+  let _lfoOsc=null,_lfoGain=null;
+  let _delay=null,_reverb=null,_allNodes=[];
+  let _sched=null,_playing=false,_nextBar=0,_barN=0,_dur=60;
+  let _stopCb=null,_beatCb=null;
+  let _melBus=null,_harmBus=null,_padBus=null,_percBus=null,_droneBus=null;
+  let _stage=0,_curP=null;
+  let _currentVolume=1.0,_unlocked=false;
+  /* Seeded state — set each start(), used by all generators */
+  let _rand=null, _sessionSeed=0;
+  /* Pre-generated melody sequence (deterministic, replayable) */
+  let _melSeq=[], _harmSeq=[], _swingSeq=[];
+
+  /* ── AudioContext ── */
+  function _ctxGet() {
+    if (!_ctx||_ctx.state==='closed') {
+      const AC=window.AudioContext||window.webkitAudioContext;
+      if (!AC) throw new Error('Web Audio not supported');
+      _ctx=new AC({latencyHint:'interactive'});
+    }
+    return _ctx;
+  }
+  function _unlockAudio(c) {
+    if (_unlocked) return;
+    try {
+      const buf=c.createBuffer(1,1,c.sampleRate),src=c.createBufferSource();
+      src.buffer=buf; src.connect(c.destination); src.start(0); src.stop(0.001);
+      _unlocked=true;
+    } catch {}
+  }
+  async function resume() {
+    const c=_ctxGet(); _unlockAudio(c);
+    if (c.state==='suspended') {
+      for (let i=0;i<3&&c.state==='suspended';i++) {
+        try{await c.resume();}catch{}
+        if (c.state!=='running') await new Promise(r=>setTimeout(r,80));
+      }
+    }
+    if (c.state==='closed'){_ctx=null;return _ctxGet();}
+    return c;
+  }
+  function _tr(...nodes){_allNodes.push(...nodes);return nodes[0];}
+
+  /* ── Reverb IR ── */
+  function _makeReverb(c,sec) {
+    const sr=c.sampleRate,len=Math.ceil(sr*sec);
+    const ir=c.createBuffer(2,len,sr);
+    for (let ch=0;ch<2;ch++){
+      const d=ir.getChannelData(ch);
+      for (let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.exp(-5*i/len);
+    }
+    const conv=c.createConvolver(); conv.buffer=ir; return _tr(conv);
+  }
+  function _noiseBuf(c,ms) {
+    const len=Math.ceil(c.sampleRate*ms/1000),buf=c.createBuffer(1,len,c.sampleRate);
+    const d=buf.getChannelData(0); for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    return buf;
+  }
+
+  /* ── Warmth filter — applied to melodic buses ── */
+  function _warmFilter(c, cutHz) {
+    const f = c.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = cutHz;
+    f.Q.value = 0.5;
+    return _tr(f);
+  }
+
+  /* ── Additive note — partials:[{r,a,w}] ── */
+  function _adNote(c,t,freq,parts,atk,dec,dest,lfoGn) {
+    const env=c.createGain();
+    env.gain.setValueAtTime(0,t);
+    env.gain.linearRampToValueAtTime(1.0,t+atk);
+    env.gain.exponentialRampToValueAtTime(0.0001,t+atk+dec);
+    env.connect(dest); _tr(env);
+    parts.forEach(({r,a,w})=>{
+      const osc=c.createOscillator(),g=c.createGain();
+      osc.type=w; osc.frequency.setValueAtTime(freq*r,t); g.gain.setValueAtTime(a,t);
+      osc.connect(g); g.connect(env);
+      osc.start(t); osc.stop(t+atk+dec+0.15); _tr(osc,g);
+      if (lfoGn&&r===1) { try{lfoGn.connect(osc.frequency);}catch{} }
+    });
+    return env;
+  }
+
+  /* ── Drone ── */
+  function _startDrone(c,freq,amp) {
+    if (!freq||!_droneBus) return;
+    [1,2,3,4,0.5].forEach((r,i)=>{
+      const osc=c.createOscillator(),g=c.createGain();
+      osc.type='sine'; osc.frequency.value=freq*r;
+      g.gain.value=amp*[0.50,0.25,0.12,0.06,0.18][i];
+      osc.detune.value=(_rand()-0.5)*5;
+      osc.connect(g); g.connect(_droneBus); osc.start(); _tr(osc,g);
+    });
+  }
+
+  /* ── Tabla ── */
+  function _tabla(c,t,stressed) {
+    const osc=c.createOscillator(),env=c.createGain();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(stressed?175:105,t);
+    osc.frequency.exponentialRampToValueAtTime(stressed?55:38,t+0.15);
+    env.gain.setValueAtTime(0,t); env.gain.linearRampToValueAtTime(stressed?0.52:0.38,t+0.005);
+    env.gain.exponentialRampToValueAtTime(0.0001,t+(stressed?0.22:0.30));
+    osc.connect(env); env.connect(_percBus||_master);
+    osc.start(t); osc.stop(t+0.36); _tr(osc,env);
+    const src=c.createBufferSource(),flt=c.createBiquadFilter(),ev2=c.createGain();
+    src.buffer=_noiseBuf(c,55); flt.type='bandpass';
+    flt.frequency.value=stressed?1300:850; flt.Q.value=12;
+    ev2.gain.setValueAtTime(0,t+0.012); ev2.gain.linearRampToValueAtTime(stressed?0.32:0.22,t+0.020);
+    ev2.gain.exponentialRampToValueAtTime(0.0001,t+0.085);
+    src.connect(flt); flt.connect(ev2); ev2.connect(_percBus||_master);
+    src.start(t+0.012); src.stop(t+0.11); _tr(src,flt,ev2);
+  }
+  function _kick(c,t,amp=0.30) {
+    const osc=c.createOscillator(),env=c.createGain();
+    osc.type='sine'; osc.frequency.setValueAtTime(90,t);
+    osc.frequency.exponentialRampToValueAtTime(28,t+0.12);
+    env.gain.setValueAtTime(0,t); env.gain.linearRampToValueAtTime(amp,t+0.004);
+    env.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
+    osc.connect(env); env.connect(_percBus||_master);
+    osc.start(t); osc.stop(t+0.28); _tr(osc,env);
+  }
+  function _snare(c,t,amp=0.22) {
+    const src=c.createBufferSource(),flt=c.createBiquadFilter(),env=c.createGain();
+    src.buffer=_noiseBuf(c,170); flt.type='bandpass'; flt.frequency.value=1600; flt.Q.value=0.9;
+    env.gain.setValueAtTime(0,t); env.gain.linearRampToValueAtTime(amp,t+0.004);
+    env.gain.exponentialRampToValueAtTime(0.0001,t+0.16);
+    src.connect(flt); flt.connect(env); env.connect(_percBus||_master);
+    src.start(t); src.stop(t+0.20); _tr(src,flt,env);
+  }
+  function _hihat(c,t,amp=0.07) {
+    const src=c.createBufferSource(),flt=c.createBiquadFilter(),env=c.createGain();
+    src.buffer=_noiseBuf(c,26); flt.type='highpass'; flt.frequency.value=7800;
+    env.gain.setValueAtTime(0,t); env.gain.linearRampToValueAtTime(amp,t+0.002);
+    env.gain.exponentialRampToValueAtTime(0.0001,t+0.028);
+    src.connect(flt); flt.connect(env); env.connect(_percBus||_master);
+    src.start(t); src.stop(t+0.038); _tr(src,flt,env);
+  }
+
+  /* ── Heartbeat ── */
+  function _heartbeat(c,t,barDur,bpm) {
+    const calm=bpm<65;
+    [{ms:65,freq:calm?125:185,Q:5.5,amp:calm?0.28:bpm>100?0.52:0.38,dt:0},
+     {ms:44,freq:calm?175:255,Q:4.2,amp:calm?0.15:bpm>100?0.32:0.21,dt:barDur*0.27}].forEach(({ms,freq,Q,amp,dt})=>{
+      const src=c.createBufferSource(),flt=c.createBiquadFilter(),env=c.createGain();
+      src.buffer=_noiseBuf(c,ms); flt.type='lowpass'; flt.frequency.value=freq; flt.Q.value=Q;
+      const st=t+dt;
+      env.gain.setValueAtTime(0,st); env.gain.linearRampToValueAtTime(amp,st+0.008);
+      env.gain.exponentialRampToValueAtTime(0.0001,st+ms/1000);
+      src.connect(flt); flt.connect(env); env.connect(_master);
+      src.start(st); src.stop(st+ms/1000+0.01); _tr(src,flt,env);
+    });
+    if (_beatCb&&_ctx) setTimeout(_beatCb,Math.max(0,(t-_ctx.currentTime)*1000));
+  }
+
+  /* ════════════════════════════════════════════════════════
+     MUSICAL PHRASE ENGINE
+     ─────────────────────
+     Generates a fully deterministic melody sequence using:
+     • Guided random walk with step preference (±1 or ±2 steps)
+     • Strong beat emphasis on chord tones (root, 3rd, 5th)
+     • Phrase arch: rises to midpoint then descends
+     • Cadences every 4 bars back to root area
+     • HRV controls expressiveness (range of notes)
+  ════════════════════════════════════════════════════════ */
+  function _generateMelody(scale, bars, stepsPerBar, hrv) {
+    const r = _rand; // already seeded
+    const N = bars * stepsPerBar;
+    const seq = new Array(N);
+
+    /* Chord tones are indices 0, 2, 4 in pentatonic */
+    const isChordTone = i => (i % scale.length) < 3;
+
+    /* Start near the middle of the scale */
+    const mid = Math.floor(scale.length / 2);
+    let pos = mid + Math.round((r() - 0.5) * 2);
+    pos = Math.max(0, Math.min(scale.length - 1, pos));
+
+    /* Expression range: wider with higher HRV */
+    const range = Math.max(2, Math.min(scale.length - 1, Math.round(hrv / 12) + 2));
+
+    for (let i = 0; i < N; i++) {
+      const bar = Math.floor(i / stepsPerBar);
+      const beat = i % stepsPerBar;
+      const isStrong = beat === 0; // downbeat
+      const phrasePos = (bar % 4) / 3; // 0→1 phrase position
+
+      seq[i] = scale[pos];
+
+      /* Advance for next note */
+      const target = mid + Math.round(Math.sin(phrasePos * Math.PI) * range * 0.5);
+
+      if (bar % 4 === 3 && beat >= stepsPerBar - 2) {
+        /* Cadence: pull toward root */
+        pos += pos > mid ? -1 : pos < mid ? 1 : 0;
+      } else {
+        /* Step motion: prefer ±1, occasionally ±2, rarely leap */
+        const pull = Math.sign(target - pos) * (r() < 0.55 ? 1 : 0);
+        const step = r() < 0.65 ? pull || (r() < 0.5 ? 1 : -1) :
+                     r() < 0.85 ? (r() < 0.5 ? 1 : -1) * 2 :
+                     Math.round((r() - 0.5) * range);
+        pos = Math.max(0, Math.min(scale.length - 1, pos + step));
+        /* On strong beats bias toward chord tones */
+        if (isStrong && !isChordTone(pos)) {
+          const adj = pos > 0 && isChordTone(pos-1) ? -1 :
+                      pos < scale.length-1 && isChordTone(pos+1) ? 1 : 0;
+          pos = Math.max(0, Math.min(scale.length - 1, pos + adj));
+        }
+      }
+    }
+    return seq;
+  }
+
+  /* Consonant harmony note: always a 3rd or 5th above melody */
+  function _harmNote(melFreq, scale) {
+    /* Find scale index of melody note */
+    const idx = scale.indexOf(melFreq);
+    if (idx < 0) return melFreq * 1.4983; // perfect 5th fallback
+    /* Go up 2 or 3 steps in scale (3rd or 4th degree up) */
+    const up = 2 + Math.floor(idx / 3) % 2; // alternates 2 and 3
+    return scale[Math.min(scale.length - 1, idx + up)] || melFreq * 1.2599;
+  }
+
+  /* Pre-generate swing offsets for all bars×steps */
+  function _generateSwing(bars, stepsPerBar, swing) {
+    const r = _rand;
+    const N = bars * stepsPerBar;
+    const seq = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const beat = i % stepsPerBar;
+      seq[i] = (beat % 2 === 1 ? swing : -swing * 0.2) + (r() - 0.5) * swing * 0.18;
+    }
+    return seq;
+  }
+
+  /* ── Bar scheduler (uses pre-generated sequences) ── */
+  function _schedBar(c, barStart, stepSec, hrv, bpm, p) {
+    const nSteps = p.melGrid.length, barDur = stepSec * nSteps;
+    _heartbeat(c, barStart, barDur, bpm);
+
+    for (let s = 0; s < nSteps; s++) {
+      const seqIdx = _barN * nSteps + s;
+      const swOff  = _swingSeq[seqIdx % _swingSeq.length] || 0;
+      const t = Math.max(barStart, barStart + s * stepSec + swOff);
+
+      /* Bass — root note, octave below melody */
+      if (p.bassGrid[s]) {
+        const bf = s < nSteps/2 ? p.scale[0]/2 : p.scale[2]/2;
+        _adNote(c, t, bf, p.bassParts, p.bassA, p.bassD, _master, null);
+      }
+
+      /* Melody */
+      if (p.melGrid[s] && _melBus) {
+        const mf = _melSeq[seqIdx % _melSeq.length] || p.scale[0];
+        _adNote(c, t, mf, p.melParts, p.melA, p.melD, _melBus, _lfoGain);
+      }
+
+      /* Harmony — consonant with melody */
+      if (p.harmGrid[s] && _harmBus) {
+        const mf = _melSeq[seqIdx % _melSeq.length] || p.scale[0];
+        const hf = _harmNote(mf, p.scale);
+        _adNote(c, t, hf, p.harmParts, p.harmA, p.harmD, _harmBus, null);
+      }
+
+      /* Pad — chord tones */
+      if (p.padGrid[s] && _padBus) {
+        const pd = stepSec * p.padDurMul;
+        [p.scale[0], p.scale[2], p.scale[4]].forEach((f, i) => {
+          _adNote(c, t, f/2, p.padParts.map(x=>({...x,a:x.a*(1-i*0.2)})), p.padA, pd, _padBus, null);
+        });
+      }
+
+      /* Percussion */
+      if (p.tabla  && p.tablaGrid?.[s]) _tabla(c, t, p.tablaS||false);
+      if (p.kick   && p.kickGrid?.[s])  _kick(c, t, p.kickAmp||0.30);
+      if (p.snare  && p.snareGrid?.[s]) _snare(c, t, p.snareAmp||0.22);
+      if (p.hihat  && p.hihatGrid?.[s]) _hihat(c, t, p.hihatAmp||0.07);
+    }
+  }
+
+  function _scheduler(c, stepSec, hrv, bpm, p) {
+    const barDur = stepSec * p.melGrid.length;
+    while (_nextBar < c.currentTime + 0.35) {
+      _schedBar(c, _nextBar, stepSec, hrv, bpm, p);
+      _nextBar += barDur; _barN++;
+    }
+    _sched = setTimeout(() => _scheduler(c, stepSec, hrv, bpm, p), 80);
+  }
+
+  /* ════ PUBLIC — START ════ */
+  async function start(bpm, hrv, timelineOrSeed, onStopFn) {
+    stop();
+    let c; try{c=await resume();}catch(e){console.error('[AE]',e);return false;}
+    if (!c||c.state!=='running'){console.warn('[AE] ctx not running:',c?.state);return false;}
+
+    if (typeof timelineOrSeed==='function') _stopCb=timelineOrSeed;
+    else _stopCb=onStopFn||null;
+
+    const B = Math.max(40,Math.min(200,bpm||72));
+    const H = Math.max(10,Math.min(100,hrv||45));
+    const p = _getProfile(B); _curP = p;
+
+    /* Derive seed: if a numeric seed is passed (library replay), use it.
+       Otherwise generate from bpm+hrv+timestamp for a fresh session. */
+    if (typeof timelineOrSeed === 'number' && timelineOrSeed > 0) {
+      _sessionSeed = timelineOrSeed >>> 0;
+    } else {
+      _sessionSeed = ((B * 7919 + H * 6271) ^ (Date.now() / 1000 | 0)) >>> 0;
+    }
+    _rand = _mkRand(_sessionSeed);
+
+    /* Half-time for soothing feel */
+    const musicBpm = Math.max(24, Math.round(B * 0.5));
+    const stepSec = 60 / musicBpm;
+    const nSteps = p.melGrid.length;
+    const barDur = stepSec * nSteps;
+    const totalBars = Math.ceil(60 / barDur) + 4;
+    _dur = Math.ceil(totalBars * barDur);
+    _allNodes = []; _barN = 0; _stage = 0;
+
+    /* Pre-generate all sequences — fully deterministic from seed */
+    _melSeq   = _generateMelody(p.scale, totalBars, nSteps, H);
+    _harmSeq  = _melSeq; // harmony derived inline from melody
+    _swingSeq = _generateSwing(totalBars, nSteps, p.swing);
+
+    /* Signal chain: master → volNode → compressor → destination */
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.knee.value = 8;
+    comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.15;
+    comp.connect(c.destination); _tr(comp);
+
+    _volNode = c.createGain();
+    _volNode.gain.setValueAtTime(_currentVolume, c.currentTime);
+    _volNode.connect(comp);
+
+    _master = c.createGain();
+    _master.gain.setValueAtTime(0, c.currentTime);
+    _master.gain.linearRampToValueAtTime(p.masterVol, c.currentTime + 1.6);
+    _master.connect(_volNode);
+
+    /* Reverb */
+    const rvWet = c.createGain(); rvWet.gain.value = p.revWet;
+    _reverb = _makeReverb(c, p.revSec);
+    _reverb.connect(rvWet); rvWet.connect(_master); _tr(rvWet);
+
+    /* Delay */
+    const dly=c.createDelay(2.5),dfb=c.createGain(),dwt=c.createGain();
+    dly.delayTime.setValueAtTime(stepSec*p.delayR, c.currentTime);
+    dfb.gain.setValueAtTime(p.delayFB, c.currentTime);
+    dwt.gain.setValueAtTime(p.delayWet, c.currentTime);
+    dly.connect(dfb); dfb.connect(dly); dly.connect(dwt); dwt.connect(_master);
+    _delay = dly; _tr(dly,dfb,dwt);
+
+    /* LFO */
+    const lfoOsc=c.createOscillator(),lfoGn=c.createGain();
+    lfoOsc.frequency.setValueAtTime(p.lfoHz, c.currentTime);
+    lfoGn.gain.setValueAtTime(p.lfoD*(1+H*0.008), c.currentTime);
+    lfoOsc.connect(lfoGn); lfoOsc.start();
+    _lfoGain=lfoGn; _lfoOsc=lfoOsc; _tr(lfoOsc,lfoGn);
+
+    /* Layer buses with warmth filters on melodic buses */
+    _melBus  = c.createGain(); _melBus.gain.value  = 0;
+    _harmBus = c.createGain(); _harmBus.gain.value = 0;
+    _padBus  = c.createGain(); _padBus.gain.value  = 0;
+    _percBus = c.createGain(); _percBus.gain.value = 0;
+    _droneBus= c.createGain(); _droneBus.gain.value= 0;
+
+    /* Warm filter → delay → master for melody */
+    const melWarm = _warmFilter(c, p.warmCut);
+    _melBus.connect(melWarm); melWarm.connect(_delay||_master);
+    /* Warm filter → reverb for harmony/pad */
+    const harmWarm = _warmFilter(c, p.warmCut * 0.8);
+    _harmBus.connect(harmWarm); harmWarm.connect(_reverb||_master);
+    _padBus.connect(_reverb||_master);
+    _percBus.connect(_master);
+    _droneBus.connect(_reverb||_master);
+    _tr(_melBus,_harmBus,_padBus,_percBus,_droneBus);
+
+    if (p.drone && p.droneAmp > 0) _startDrone(c, p.drone, p.droneAmp);
+
+    _nextBar = c.currentTime + 0.10; _playing = true;
+    _scheduler(c, stepSec, H, B, p);
+    return true;
+  }
+
+  /* ════ PUBLIC — STOP ════ */
+  function stop() {
+    if (_sched){clearTimeout(_sched);_sched=null;}
+    _allNodes.forEach(n=>{try{n.stop?.();}catch{}try{n.disconnect();}catch{}});
+    _allNodes=[];
+    [_master,_volNode].forEach(n=>{if(n)try{n.disconnect();}catch{}});
+    _master=_volNode=null;
+    _reverb=_delay=_lfoGain=_lfoOsc=null;
+    _melBus=_harmBus=_padBus=_percBus=_droneBus=null;
+    _playing=false; _stage=0;
+    if (_stopCb){_stopCb();_stopCb=null;}
+  }
+
+  function fadeOut(sec=1.8) {
+    if (!_master||!_ctx){stop();return;}
+    _master.gain.setValueAtTime(_master.gain.value,_ctx.currentTime);
+    _master.gain.linearRampToValueAtTime(0.0001,_ctx.currentTime+sec);
+    setTimeout(stop,(sec+0.2)*1000);
+  }
+
+  function setVolume(level) {
+    _currentVolume=Math.max(0,Math.min(1,level));
+    if (_volNode&&_ctx) _volNode.gain.setTargetAtTime(_currentVolume,_ctx.currentTime,0.02);
+    return _currentVolume;
+  }
+  function getVolume(){return _currentVolume;}
+
+  function setStage(n) {
+    if (!_playing||!_ctx) return;
+    const now=_ctx.currentTime,ramp=4.0;
+    _stage=Math.max(0,Math.min(3,n));
+    const T={mel:_stage>=1?1:0,harm:_stage>=2?1:0,pad:_stage>=2?1:0,
+              perc:_stage>=1?1:0,drone:_stage>=3?1:0};
+    const fade=(g,v)=>{g.setValueAtTime(g.value,now);g.linearRampToValueAtTime(v,now+ramp);};
+    if(_melBus)  fade(_melBus.gain,T.mel);
+    if(_harmBus) fade(_harmBus.gain,T.harm);
+    if(_padBus)  fade(_padBus.gain,T.pad);
+    if(_percBus) fade(_percBus.gain,T.perc);
+    if(_droneBus)fade(_droneBus.gain,T.drone);
+  }
+
+  function getMeta(bpm,hrv) {
+    const B=Math.max(40,Math.min(200,bpm||72));
+    const H=Math.max(10,Math.min(100,hrv||45));
+    const p=_getProfile(B);
+    const ti=Math.abs(Math.round(B*1.4+H*0.6))%TITLE_WORDS.length;
+    const key=CHROMATIC[Math.round(B/5.8)%12];
+    const hv=H>52?'High Variability':H>28?'Moderate Variability':'Low Variability';
+    return {
+      title:`${TITLE_WORDS[ti]} in ${key}`,
+      subtitle:`${p.name} · ${B} BPM · ${hv}`,
+      instrument:p.name, style:p.style,
+    };
+  }
+
+  function getSessionSeed() { return _sessionSeed; }
+
+  function setBeatCallback(fn){_beatCb=typeof fn==='function'?fn:null;}
+
+  return {
+    start,stop,fadeOut,resume,
+    getMeta,setStage,setBeatCallback,
+    setVolume,getVolume,
+    getSessionSeed,
+    getStageName:n=>STAGE_NAMES[Math.min(3,Math.max(0,n??_stage))],
+    getDuration:()=>_dur,
+    getIsPlaying:()=>_playing,
+    getStage:()=>_stage,
+  };
+})();
+
+window.AudioEngine=AudioEngine;
+
+</script>
+<script>
 /* ================================================================
    HeartBeat Studio — app.js v5
    Full rewrite integrating:
@@ -900,3 +3547,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     deferredInstall=null; const b=$id('installBtn');if(b)b.hidden=true;
   });
 });
+
+</script>
+</body>
+</html>
