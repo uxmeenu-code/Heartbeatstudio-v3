@@ -2032,94 +2032,144 @@ window.Storage = Storage;
 </script>
 <script>
 /* ================================================================
-   HeartBeat Studio — Audio Engine v10.0  "Morning Calm"
+   HeartBeat Studio — Audio Engine v11.0  "Megh Malhar"
    ────────────────────────────────────────────────────────────────
-   ROOT CAUSE ANALYSIS of all previous feedback:
+   Raga: Megh Malhar (Hindustani Classical, Malhar family)
+   Meaning: "Megh" = cloud. Said to invoke the monsoon.
+   Mood: Deep, serene, profound. The calm before the rain.
+   Time: Late night / monsoon season.
+   Thaat: Kafi
 
-   PROBLEM 1 — "All music sounds same / 5 people same music"
-   → seed was BPM+HRV only. Two people with 72 BPM get identical
-     music. FIX: seed = BPM + HRV + millisecond timestamp → every
-     session is unique. Library replay passes stored seed back.
+   SWARAS (5 notes only — pentatonic):
+     Sa  = C4  = 256.00 Hz  (root, 432Hz system — Verdi tuning)
+     Re  = D4  = 287.35 Hz  (Shuddha Rishabh — Mukha swara)
+     Ma  = F4  = 341.72 Hz  (Shuddha Madhyam)
+     Pa  = G4  = 383.57 Hz  (Pancham — Samavadi)
+     ni  = Bb4 = 456.14 Hz  (Komal Nishad — gives monsoon quality)
+     Sa' = C5  = 512.00 Hz  (upper Sa)
 
-   PROBLEM 2 — "Saved music different from live music"
-   → app.js was passing S.heartbeatTimeline (not seed) on replay.
-     Fixed in app.js: playLib now passes sess.musicSeed correctly.
+   AROHA  (ascending):  S  R  M  R  M  P  n  S'
+   AVAROHA (descending): S' n  P  M  R  M  n  R  S
+   PAKAD (identity phrase): R R S (n)S  M R  P M R (n)S
+   Vadi: Sa  |  Samavadi: Pa
 
-   PROBLEM 3 — "Psychedelic / confusing / cant tolerate"
-   → Root cause: Web Audio oscillators create BEATING when multiple
-     slightly-detuned sines play together. Even at low volume, the
-     amplitude modulation from beating feels anxious and unsettling.
-     Previous engines had 6-15 simultaneous oscillators.
-   FIX: Maximum 2 oscillators at any moment:
-     1. ONE melody note (single sine, no partials, no harmonics)
-     2. ONE pad note fading in slowly underneath
-     No drones. No harmonics. No sub-octaves. No simultaneous hits.
+   KEY MUSICAL RULES implemented:
+   • Re is "mukha swara" — most important note, used frequently
+   • Re always approached by sliding from Ma: M→R (not direct leap)
+   • ni always approached by sliding from Pa: P→n
+   • Characteristic Malhar hook: S (m)R (m)R P
+   • Vakra (zigzag) movement in aroha: not straight up
+   • 5 authentic hand-composed phrases used as building blocks
 
-   SOUND DESIGN v10:
-   • Single pure sine per note — no beating possible
-   • C pentatonic (C D E G A) — universally pleasant
-   • Notes play one at a time, 2.5–4s apart
-   • Soft pad: ONE note, very slow attack (2s), barely audible
-   • Pad changes only every 16 melody notes
-   • NO reverb on melody (reverb smears and confuses)
-   • Light reverb only on pad (creates gentle space)
-   • NO drones — they were causing the "psychedelic" feel
-   • NO harmonics / sub-octaves — they cause beating
-   • Fixed consistent volume — no amplitude jumping
-   • Melody follows simple 8-note phrases (up then down)
-   • Each session has unique seed from timestamp
+   SOUND DESIGN:
+   • Sa drone (tanpura-like) — continuous, very soft
+   • One melody note at a time — clean, no beating
+   • Slow tempo matching heartbeat feel (1 note per 2-4s)
+   • Sine wave with gentle frequency glide for meend (portamento)
+   • Light reverb to suggest open sky
+   • Unique seed per session (timestamp) = different each time
 ================================================================ */
 'use strict';
 
 const AudioEngine = (() => {
 
-  /* ── C Major Pentatonic, 432Hz tuning ──────────────────────
-     These 8 notes are the ONLY notes used. All are consonant.
-     Chosen range: C4 to C5 — comfortable, not shrill, not muddy.
-  ─────────────────────────────────────────────────────────── */
-  const MELODY_NOTES = [
-    256.0,   /* C4 */
-    287.4,   /* D4 */
-    322.5,   /* E4 */
-    384.0,   /* G4 */
-    432.0,   /* A4  ← 432Hz */
-    512.0,   /* C5 */
-    574.7,   /* D5 */
-    645.0,   /* E5 */
-  ];
+  /* ═══════════════════════════════════════════════════════════
+     MEGH MALHAR — Frequencies in C-root 432Hz system
+     Sa = C4 = 256 Hz  (Verdi pitch / 432Hz tuning)
+  ════════════════════════════════════════════════════════════ */
+  const HZ = {
+    Sn:  228.07,  /* lower Sa (C3 octave) — tanpura bass     */
+    Pn:  191.78,  /* lower Pa (G3) — tanpura 5th             */
+    S:   256.00,  /* Sa  C4 — root                           */
+    R:   287.35,  /* Re  D4 — mukha swara                    */
+    M:   341.72,  /* Ma  F4                                   */
+    P:   383.57,  /* Pa  G4 — samavadi                       */
+    n:   456.14,  /* ni  Bb4 — komal, monsoon quality        */
+    S2:  512.00,  /* Sa' C5 — upper octave                   */
+    R2:  574.70,  /* Re' D5                                   */
+    M2:  683.44,  /* Ma' F5                                   */
+    n2:  912.28,  /* ni' Bb5                                  */
+  };
 
-  /* 8 gentle melodic phrases — sequences of note indices.
-     Each phrase is musically complete: rises and resolves.
-     Different BPM zones get different phrases for variety.     */
+  /* ═══════════════════════════════════════════════════════════
+     5 AUTHENTIC MEGH MALHAR PHRASES
+     Each is an array of [frequency, durationMultiplier]
+     durationMultiplier: 1=normal, 2=held, 0.5=quick passing note
+     These encode the actual raga grammar:
+       • Aroha uses vakra (zigzag) movement
+       • Re always comes via Ma
+       • ni always comes via Pa
+       • Phrases end with resolution to Sa or Re
+  ════════════════════════════════════════════════════════════ */
   const PHRASES = [
-    [2,3,4,5,4,3,2,1],   /* gentle arch          — most common   */
-    [1,2,3,4,5,4,3,2],   /* rising then settling                 */
-    [4,3,2,1,2,3,4,5],   /* valley then rise                     */
-    [3,4,5,6,5,4,3,2],   /* mid-high arch                        */
-    [2,3,4,3,2,3,4,3],   /* rocking pattern — very calm          */
-    [5,4,3,2,3,4,5,4],   /* descending then back — meditative    */
-    [1,3,4,3,1,2,3,2],   /* open and settled                     */
-    [4,5,6,5,4,3,2,3],   /* high and floating                    */
+    /* Phrase 1 — PAKAD (identity phrase) — most characteristic */
+    /* R R S (n)S  M R  P M R (n)S */
+    [
+      [HZ.R,  1.2], [HZ.R,  0.8],
+      [HZ.S,  1.5],
+      [HZ.n,  0.4], [HZ.S,  1.0],  /* (n) as grace note before S */
+      [HZ.M,  0.8], [HZ.R,  1.5],
+      [HZ.P,  0.8], [HZ.M,  0.6], [HZ.R,  2.0],
+    ],
+
+    /* Phrase 2 — AROHA movement: S R M R M P n S' */
+    [
+      [HZ.S,  1.0],
+      [HZ.R,  0.8], [HZ.M,  0.6], [HZ.R,  1.2],  /* Re via Ma */
+      [HZ.M,  0.8], [HZ.P,  1.2],
+      [HZ.n,  0.8], [HZ.S2, 2.5],  /* resolve to upper Sa */
+    ],
+
+    /* Phrase 3 — AVAROHA descent: S' n P M R M n R S */
+    [
+      [HZ.S2, 1.5],
+      [HZ.n,  0.8], [HZ.P,  1.0],  /* ni via Pa */
+      [HZ.M,  0.8], [HZ.R,  1.2],
+      [HZ.M,  0.6], [HZ.n,  0.5], [HZ.R,  1.5],
+      [HZ.S,  2.5],  /* resolve to Sa */
+    ],
+
+    /* Phrase 4 — MALHAR SIGNATURE: S (m)R (m)R P */
+    /* The defining Malhar hook — Re approached twice via Ma */
+    [
+      [HZ.S,  1.2],
+      [HZ.M,  0.3], [HZ.R,  1.0],  /* (m)R — Ma as grace into Re */
+      [HZ.M,  0.3], [HZ.R,  1.2],  /* (m)R again */
+      [HZ.P,  2.5],                  /* settle on Pa */
+      [HZ.M,  0.8], [HZ.R,  2.0],   /* descend to Re */
+    ],
+
+    /* Phrase 5 — MADHYA SAPTAK (mid-range meditation) */
+    /* M R  P n P  M R S */
+    [
+      [HZ.M,  0.8], [HZ.R,  1.0],
+      [HZ.P,  0.8], [HZ.n,  0.6], [HZ.P,  1.2],  /* n slides from P */
+      [HZ.M,  0.8], [HZ.R,  1.2],
+      [HZ.S,  2.5],
+    ],
   ];
 
-  /* Seeded xorshift32 — deterministic from stored seed */
+  /* Seeded PRNG */
   function _mkRand(seed) {
-    let s = (seed >>> 0) || 0xF00DCAFE;
-    return () => { s^=s<<13; s^=s>>>17; s^=s<<5; return (s>>>0)/0x100000000; };
+    let s=(seed>>>0)||0xDEAD1234;
+    return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return(s>>>0)/0x100000000;};
   }
 
-  /* Engine state */
-  const STAGE_NAMES=['Heartbeat Pulse','Melody Flowing','Harmony Rising','Full Bloom'];
-  const MOODS=['Serenity','Stillness','Solace','Reverie','Clarity',
-               'Presence','Bloom','Luminance','Drift','Aether','Tide','Peace'];
+  const STAGE_NAMES=['Tanpura Awakening','Raga Emerging','Full Vistar','Deep Bhava'];
+  const MOODS=['Megh','Varsha','Neel','Gagana','Pavana',
+               'Saagar','Dharaa','Ambara','Tarang','Shanta','Nidra','Praana'];
 
   let _ctx=null,_master=null,_volNode=null;
   let _reverb=null,_allNodes=[];
-  let _sched=null,_playing=false,_nextT=0,_noteIdx=0;
+  let _sched=null,_playing=false;
   let _stopCb=null,_beatCb=null;
+  let _melBus=null;
   let _stage=0,_currentVolume=1.0,_unlocked=false;
   let _rand=null,_sessionSeed=0;
-  let _bpm=72,_noteSec=3.0,_phrase=[],_padOsc=null,_padEnv=null;
+  let _bpm=72,_noteSec=2.8;
+
+  /* Queue of upcoming [freq, dur] pairs from phrases */
+  let _queue=[], _nextT=0, _phraseCount=0;
 
   /* ── AudioContext ── */
   function _ctxGet(){
@@ -2148,96 +2198,139 @@ const AudioEngine = (() => {
   }
   function _tr(...ns){_allNodes.push(...ns);return ns[0];}
 
-  /* ── Minimal reverb — only for pad, short and gentle ── */
+  /* ── Reverb — open-sky feel ── */
   function _mkReverb(c){
-    const sr=c.sampleRate,len=Math.ceil(sr*2.5);
+    const sr=c.sampleRate,len=Math.ceil(sr*3.5);
     const ir=c.createBuffer(2,len,sr);
     for(let ch=0;ch<2;ch++){
       const d=ir.getChannelData(ch);
-      for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3)*0.3;
+      for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.2)*0.4;
     }
     const conv=c.createConvolver();conv.buffer=ir;return _tr(conv);
   }
 
-  /* ── Single clean sine note ───────────────────────────────────
-     ONLY one oscillator. No harmonics. No sub-octave.
-     This eliminates all beating and psychedelic interference.
-     Envelope: 10ms attack → decay to silence before next note.
+  /* ── TANPURA DRONE ───────────────────────────────────────────
+     The tanpura is the harmonic foundation of Indian classical.
+     Drones: Sa + Pa (5th) + upper Sa — all barely audible.
+     Very slow attack so it "appears" rather than starts.
   ─────────────────────────────────────────────────────────── */
-  function _sineNote(c,t,freq,amp,dest){
-    const decay=Math.min(_noteSec*0.75,2.8); /* never bleeds into next note */
+  function _startTanpura(c){
+    const drones=[
+      [HZ.Sn*0.5, 0.055],   /* deep Sa sub */
+      [HZ.Sn,     0.048],   /* Sa bass      */
+      [HZ.Pn,     0.032],   /* Pa 5th       */
+      [HZ.S,      0.038],   /* Sa middle    */
+    ];
+    drones.forEach(([freq,amp],i)=>{
+      const osc=c.createOscillator(),g=c.createGain();
+      osc.type='sine'; osc.frequency.value=freq;
+      g.gain.setValueAtTime(0,c.currentTime);
+      g.gain.linearRampToValueAtTime(amp,c.currentTime+4+i*0.8);
+      osc.connect(g);
+      /* Tanpura goes through reverb for spaciousness */
+      if(_reverb){g.connect(_reverb);}else{g.connect(_master);}
+      osc.start();_tr(osc,g);
+    });
+  }
+
+  /* ── MEEND (portamento glide) note ──────────────────────────
+     The soul of Hindustani music. Notes don't jump — they glide.
+     Re glides from Ma. ni glides from Pa.
+     Implementation: frequency ramps from 'fromFreq' to 'toFreq'
+     over the first 15% of the note duration.
+  ─────────────────────────────────────────────────────────── */
+  function _meendNote(c, t, freq, durSec, amp, fromFreq, dest){
+    const decay = Math.min(durSec, _noteSec * 0.88);
+    const glideTime = decay * 0.15; /* 15% of note = glide */
+
     const env=c.createGain();
     env.gain.setValueAtTime(0,t);
-    env.gain.linearRampToValueAtTime(amp,t+0.010);   /* soft attack */
-    env.gain.exponentialRampToValueAtTime(amp*0.3,t+0.15); /* piano decay */
-    env.gain.exponentialRampToValueAtTime(0.0001,t+decay);
+    env.gain.linearRampToValueAtTime(amp, t+0.012);     /* soft attack */
+    env.gain.exponentialRampToValueAtTime(amp*0.55, t+decay*0.3);
+    env.gain.exponentialRampToValueAtTime(0.0001, t+decay);
     env.connect(dest);_tr(env);
-    const osc=c.createOscillator();
-    osc.type='sine';osc.frequency.value=freq;
-    osc.connect(env);osc.start(t);osc.stop(t+decay+0.1);_tr(osc);
-  }
 
-  /* ── Pad note — single sine, very slow, barely heard ─────────
-     One note, very soft, long slow attack so it never "hits".
-     Connected through reverb only — stays in the background.
-  ─────────────────────────────────────────────────────────── */
-  function _startPad(c,freq){
-    _stopPad();
-    const env=c.createGain();
-    env.gain.setValueAtTime(0,c.currentTime);
-    env.gain.linearRampToValueAtTime(0.04,c.currentTime+2.5); /* very slow appear */
-    _padEnv=env;
     const osc=c.createOscillator();
-    osc.type='sine';osc.frequency.value=freq*0.5; /* one octave below melody */
-    osc.connect(env);
-    if(_reverb){env.connect(_reverb);}else{env.connect(_master);}
-    osc.start();_padOsc=osc;_tr(osc,env);
-  }
-  function _stopPad(){
-    if(_padEnv&&_ctx){
-      _padEnv.gain.setValueAtTime(_padEnv.gain.value,_ctx.currentTime);
-      _padEnv.gain.linearRampToValueAtTime(0.0001,_ctx.currentTime+1.5);
+    osc.type='sine';
+    /* Start from glide source frequency, ramp to target */
+    osc.frequency.setValueAtTime(fromFreq||freq, t);
+    if(fromFreq && fromFreq!==freq){
+      osc.frequency.linearRampToValueAtTime(freq, t+glideTime);
     }
-    _padOsc=null;_padEnv=null;
+    osc.connect(env);
+    osc.start(t);
+    osc.stop(t+decay+0.1);
+    _tr(osc);
   }
 
-  /* ── Soft heartbeat thud ── */
+  /* Determine the "from" frequency for meend:
+     Re always slides from Ma. ni always slides from Pa.       */
+  function _fromFreq(freq){
+    if(Math.abs(freq-HZ.R)<1  || Math.abs(freq-HZ.R2)<1) return HZ.M;  /* M→R */
+    if(Math.abs(freq-HZ.n)<1  || Math.abs(freq-HZ.n2)<1) return HZ.P;  /* P→n */
+    return freq; /* all others: direct */
+  }
+
+  /* ── Heartbeat thud (very subtle — music is primary) ── */
   function _thud(c,t){
-    const amp=_bpm<65?0.07:_bpm>100?0.12:0.09;
+    const amp=_bpm<65?0.06:_bpm>100?0.10:0.08;
     const osc=c.createOscillator(),env=c.createGain();
     osc.type='sine';
-    osc.frequency.setValueAtTime(48,t);
-    osc.frequency.exponentialRampToValueAtTime(24,t+0.18);
+    osc.frequency.setValueAtTime(44,t);
+    osc.frequency.exponentialRampToValueAtTime(22,t+0.22);
     env.gain.setValueAtTime(0,t);
     env.gain.linearRampToValueAtTime(amp,t+0.008);
-    env.gain.exponentialRampToValueAtTime(0.0001,t+0.28);
+    env.gain.exponentialRampToValueAtTime(0.0001,t+0.30);
     osc.connect(env);env.connect(_master);
-    osc.start(t);osc.stop(t+0.35);_tr(osc,env);
+    osc.start(t);osc.stop(t+0.38);_tr(osc,env);
     if(_beatCb&&_ctx)setTimeout(_beatCb,Math.max(0,(t-_ctx.currentTime)*1000));
   }
 
-  /* ── Scheduler ─────────────────────────────────────────────── */
+  /* ── Refill the phrase queue ── */
+  function _nextPhrase(){
+    /* Pick phrase — seed-driven so replay is identical */
+    /* Bias toward Pakad (phrase 0) and Aroha (phrase 1) */
+    const weights=[0.28, 0.22, 0.20, 0.18, 0.12];
+    const r=_rand();
+    let cumulative=0, idx=0;
+    for(let i=0;i<weights.length;i++){
+      cumulative+=weights[i];
+      if(r<cumulative){idx=i;break;}
+    }
+    /* Add a brief pause between phrases (silence = breathing room) */
+    _queue.push([0, 1.5]); /* silence marker */
+    _queue.push(...PHRASES[idx]);
+    _phraseCount++;
+  }
+
+  /* ── Main scheduler ── */
   function _scheduler(c){
-    while(_nextT < c.currentTime+0.35){
+    const LOOK_AHEAD=0.40;
+    while(_nextT < c.currentTime+LOOK_AHEAD){
       const t=_nextT;
 
-      /* Heartbeat always */
-      _thud(c,t);
+      /* Refill queue when empty */
+      if(_queue.length===0) _nextPhrase();
 
-      /* Melody: only when stage >= 1 */
-      if(_stage>=1){
-        const noteIndex=_phrase[_noteIdx%_phrase.length];
-        const freq=MELODY_NOTES[Math.min(MELODY_NOTES.length-1,Math.max(0,noteIndex))];
-        _sineNote(c,t,freq,0.22,_master); /* direct to master — no reverb on melody */
+      const [freq, durMul] = _queue.shift();
+      const noteDur = _noteSec * durMul;
 
-        /* Change pad root every 8 notes to follow melody loosely */
-        if(_noteIdx%8===0 && _stage>=1){
-          _startPad(c,freq);
-        }
-        _noteIdx++;
+      if(freq===0){
+        /* Silence — just advance time */
+        _nextT += noteDur;
+        continue;
       }
 
-      _nextT+=_noteSec;
+      /* Heartbeat thud on every note (subtle) */
+      _thud(c,t);
+
+      /* Melody note with meend glide */
+      if(_stage>=1 && _melBus){
+        const from=_fromFreq(freq);
+        _meendNote(c,t,freq,noteDur*0.9,0.24,from,_melBus);
+      }
+
+      _nextT+=noteDur;
     }
     _sched=setTimeout(()=>_scheduler(c),80);
   }
@@ -2254,50 +2347,30 @@ const AudioEngine = (() => {
     _bpm=Math.max(40,Math.min(200,bpm||72));
     const hrv2=Math.max(5,Math.min(100,hrv||45));
 
-    /* ── SEED ─────────────────────────────────────────────────
-       CRITICAL FIX for bugs 1, 2, 3:
-       • Fresh session: seed includes Date.now() milliseconds
-         → every scan is unique, even same BPM+HRV
-         → two people with same BPM get different music
-       • Library replay: stored seed passed as number > 0
-         → exact same phrase/variation as original session
-    ────────────────────────────────────────────────────────── */
+    /* Unique seed: timestamp ensures every session is different */
     if(typeof seedOrTimeline==='number'&&seedOrTimeline>0){
-      _sessionSeed=seedOrTimeline>>>0;  /* replay — use stored seed */
-    } else {
-      /* Fresh: BPM + HRV + full millisecond timestamp = unique */
+      _sessionSeed=seedOrTimeline>>>0;
+    }else{
       _sessionSeed=((_bpm*6271)+(hrv2*3919)+(Date.now()%999983))>>>0;
     }
     _rand=_mkRand(_sessionSeed);
 
-    /* ── Tempo ── HR → note spacing ──
-       Slow: 72 BPM → note every 3.0s
-       Fast: 110BPM → note every 2.0s
-       Formula: noteSec = 4.5 - (BPM/72)*1.5, clamped 1.8–4.5 */
-    _noteSec=Math.max(1.8,Math.min(4.5, 4.5-(_bpm/72)*1.5));
+    /* Note duration from BPM:
+       Slower pulse → more spacious, meditative
+       Faster pulse → slightly quicker but still calm          */
+    _noteSec=Math.max(1.6,Math.min(4.0, 3.8-(_bpm-60)*0.018));
 
-    /* ── Pick phrase from seed (unique per session) ──
-       Also pick a random starting phrase offset so even same
-       BPM+phrase plays differently each time.                 */
-    const phraseIdx=Math.floor(_rand()*PHRASES.length);
-    const offset=Math.floor(_rand()*PHRASES[phraseIdx].length);
-    /* Build a longer sequence by chaining 4 phrase variations */
-    _phrase=[];
-    for(let i=0;i<4;i++){
-      const pIdx=(phraseIdx+i)%PHRASES.length;
-      /* Reverse alternate phrases for musical variation */
-      const p=i%2===0?[...PHRASES[pIdx]]:[...PHRASES[pIdx]].reverse();
-      _phrase.push(...p);
-    }
-    /* Apply offset so replay starts at same position */
-    _noteIdx=offset;
+    /* HRV adds subtle breathing variation to duration */
+    _noteSec+=(_hrv-45)*0.005;
+    _noteSec=Math.max(1.6,Math.min(4.2,_noteSec));
 
+    _queue=[];_phraseCount=0;
     _allNodes=[];_stage=0;
 
-    /* Signal chain: master → vol → compressor → output */
+    /* Signal chain */
     const comp=c.createDynamicsCompressor();
     comp.threshold.value=-18;comp.knee.value=12;
-    comp.ratio.value=2.5;comp.attack.value=0.015;comp.release.value=0.40;
+    comp.ratio.value=2.5;comp.attack.value=0.015;comp.release.value=0.45;
     comp.connect(c.destination);_tr(comp);
 
     _volNode=c.createGain();
@@ -2306,15 +2379,27 @@ const AudioEngine = (() => {
 
     _master=c.createGain();
     _master.gain.setValueAtTime(0,c.currentTime);
-    _master.gain.linearRampToValueAtTime(0.85,c.currentTime+2.0);
+    _master.gain.linearRampToValueAtTime(0.82,c.currentTime+2.5);
     _master.connect(_volNode);
 
-    /* Short gentle reverb — pad only */
+    /* Reverb for tanpura + melody space */
     _reverb=_mkReverb(c);
-    const rvg=c.createGain();rvg.gain.value=0.35;
+    const rvg=c.createGain();rvg.gain.value=0.40;
     _reverb.connect(rvg);rvg.connect(_master);_tr(rvg);
 
-    _nextT=c.currentTime+0.8;
+    /* Melody bus → gentle LP → direct + reverb */
+    _melBus=c.createGain();_melBus.gain.value=0;_tr(_melBus);
+    const lp=c.createBiquadFilter();
+    lp.type='lowpass';lp.frequency.value=1400;lp.Q.value=0.4;
+    _melBus.connect(lp);
+    lp.connect(_master);    /* direct — presence */
+    lp.connect(_reverb);    /* reverb — space    */
+    _tr(lp);
+
+    /* Start tanpura drone */
+    _startTanpura(c);
+
+    _nextT=c.currentTime+1.2; /* 1.2s silence → tanpura settles first */
     _playing=true;
     _scheduler(c);
     return true;
@@ -2323,21 +2408,19 @@ const AudioEngine = (() => {
   /* ════ PUBLIC — STOP ════ */
   function stop(){
     if(_sched){clearTimeout(_sched);_sched=null;}
-    _stopPad();
     _allNodes.forEach(n=>{try{n.stop?.();}catch{}try{n.disconnect();}catch{}});
     _allNodes=[];
     [_master,_volNode].forEach(n=>{if(n)try{n.disconnect();}catch{}});
-    _master=_volNode=_reverb=null;
-    _padOsc=_padEnv=null;
-    _playing=false;_stage=0;
+    _master=_volNode=_reverb=null;_melBus=null;
+    _queue=[];_playing=false;_stage=0;
     if(_stopCb){_stopCb();_stopCb=null;}
   }
 
-  function fadeOut(sec=2.5){
+  function fadeOut(sec=3.0){
     if(!_master||!_ctx){stop();return;}
     _master.gain.setValueAtTime(_master.gain.value,_ctx.currentTime);
     _master.gain.linearRampToValueAtTime(0.0001,_ctx.currentTime+sec);
-    setTimeout(stop,(sec+0.3)*1000);
+    setTimeout(stop,(sec+0.4)*1000);
   }
 
   function setVolume(v){
@@ -2350,19 +2433,22 @@ const AudioEngine = (() => {
   function setStage(n){
     if(!_ctx)return;
     _stage=Math.max(0,Math.min(3,n));
-    /* Stage 1 = melody starts. Pad starts with first melody note. */
+    if(_melBus&&_ctx){
+      const now=_ctx.currentTime;
+      _melBus.gain.setValueAtTime(_melBus.gain.value,now);
+      _melBus.gain.linearRampToValueAtTime(_stage>=1?1:0,now+3.5);
+    }
   }
 
   function getMeta(bpm,hrv){
     const B=Math.max(40,Math.min(200,bpm||72));
     const H=Math.max(5,Math.min(100,hrv||45));
-    const ns=Math.max(1.8,Math.min(4.5,4.5-(B/72)*1.5));
     const moodIdx=Math.abs(Math.round(B*1.3+H*0.7))%MOODS.length;
-    const feel=H>55?'Expressive':H>28?'Flowing':'Intimate';
+    const feel=H>55?'Gambhir (Profound)':H>28?'Shanta (Serene)':'Komal (Tender)';
     return{
-      title:`${MOODS[moodIdx]}`,
-      subtitle:`432Hz · C Pentatonic · ${feel}`,
-      instrument:'Crystal Sine Piano',style:'Morning Calm',
+      title:`${MOODS[moodIdx]} — Megh Malhar`,
+      subtitle:`Raga Megh Malhar · 432Hz · ${feel}`,
+      instrument:'Raga Megh Malhar',style:'Hindustani Vilambit',
     };
   }
 
@@ -2382,6 +2468,7 @@ const AudioEngine = (() => {
 
 window.AudioEngine=AudioEngine;
 </script>
+
 
 
 
