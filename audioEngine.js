@@ -56,7 +56,7 @@ const AudioEngine = (() => {
       melGrid: [1,0,0,0,0,0,1,0], harmGrid:[0,0,1,0,0,0,0,0],
       padGrid: [1,0,0,0,0,0,0,0], bassGrid:[1,0,0,0,1,0,0,0],
       padDurMul:12, delayR:0.75,delayFB:0.38,delayWet:0.28,
-      revSec:5.5,revWet:0.55, masterVol:0.44,
+      revSec:5.5,revWet:0.55, masterVol:1.6,
       lfoHz:0.06,lfoD:0.030, swing:0.042,swingH:0.0007,
     };
 
@@ -76,7 +76,7 @@ const AudioEngine = (() => {
       melGrid: [1,0,0,0,1,0,0,0], harmGrid:[0,0,1,0,0,0,1,0],
       padGrid: [1,0,0,0,0,0,0,0], bassGrid:[1,0,0,0,1,0,0,0],
       padDurMul:9, delayR:0.67,delayFB:0.32,delayWet:0.22,
-      revSec:4.2,revWet:0.50, masterVol:0.46,
+      revSec:4.2,revWet:0.50, masterVol:1.8,
       lfoHz:0.11,lfoD:0.032, swing:0.026,swingH:0.0005,
     };
 
@@ -97,7 +97,7 @@ const AudioEngine = (() => {
       melGrid: [1,0,0,1,0,0,1,0], harmGrid:[0,0,1,0,0,1,0,0],
       padGrid: [1,0,0,0,1,0,0,0], bassGrid:[1,0,0,1,0,0,1,0],
       padDurMul:6.5, delayR:0.50,delayFB:0.22,delayWet:0.16,
-      revSec:2.8,revWet:0.32, masterVol:0.42,
+      revSec:2.8,revWet:0.32, masterVol:1.6,
       lfoHz:0.20,lfoD:0.018, swing:0.015,swingH:0.0003,
     };
 
@@ -119,7 +119,7 @@ const AudioEngine = (() => {
       melGrid: [1,0,1,0,0,1,0,0], harmGrid:[0,0,1,0,0,0,1,0],
       padGrid: [1,0,0,0,1,0,0,0], bassGrid:[1,0,1,0,1,0,0,0],
       padDurMul:5, delayR:0.50,delayFB:0.20,delayWet:0.14,
-      revSec:1.8,revWet:0.24, masterVol:0.42,
+      revSec:1.8,revWet:0.24, masterVol:1.6,
       lfoHz:0.26,lfoD:0.014, swing:0.012,swingH:0.00025,
     };
 
@@ -139,7 +139,7 @@ const AudioEngine = (() => {
       melGrid: [1,0,1,0,1,0,0,1], harmGrid:[0,1,0,0,0,1,0,0],
       padGrid: [1,0,0,0,0,0,0,0], bassGrid:[1,0,1,0,1,1,0,0],
       padDurMul:4, delayR:0.33,delayFB:0.16,delayWet:0.12,
-      revSec:1.2,revWet:0.18, masterVol:0.40,
+      revSec:1.2,revWet:0.18, masterVol:1.5,
       lfoHz:0.50,lfoD:0.010, swing:0.006,swingH:0.00015,
     };
   }
@@ -158,7 +158,7 @@ const AudioEngine = (() => {
   let _stopCb=null,_beatCb=null;
   let _melBus=null,_harmBus=null,_padBus=null,_percBus=null,_droneBus=null;
   let _stage=0,_curP=null;
-  let _currentVolume=0.8,_unlocked=false;
+  let _currentVolume=1.0,_unlocked=false;
 
   /* AudioContext */
   function _ctxGet() {
@@ -366,8 +366,17 @@ const AudioEngine = (() => {
     _dur=Math.ceil(barsNeeded*barDur);
     _allNodes=[]; _barN=0; _stage=0;
 
+    /* DynamicsCompressor prevents clipping at high gain */
+    const _comp=c.createDynamicsCompressor();
+    _comp.threshold.value=-18;  /* start compressing at -18dB */
+    _comp.knee.value=6;
+    _comp.ratio.value=4;
+    _comp.attack.value=0.003;
+    _comp.release.value=0.15;
+    _comp.connect(c.destination); _tr(_comp);
+
     _volNode=c.createGain(); _volNode.gain.setValueAtTime(_currentVolume,c.currentTime);
-    _volNode.connect(c.destination);
+    _volNode.connect(_comp);
 
     _master=c.createGain(); _master.gain.setValueAtTime(0,c.currentTime);
     _master.gain.linearRampToValueAtTime(p.masterVol,c.currentTime+1.6);
