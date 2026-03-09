@@ -2388,7 +2388,8 @@ const AudioEngine = (() => {
     _reverb.connect(rvg);rvg.connect(_master);_tr(rvg);
 
     /* Melody bus → gentle LP → direct + reverb */
-    _melBus=c.createGain();_melBus.gain.value=0;_tr(_melBus);
+    /* gain=1 from the start — music plays immediately, no gate */
+    _melBus=c.createGain();_melBus.gain.value=1;_tr(_melBus);
     const lp=c.createBiquadFilter();
     lp.type='lowpass';lp.frequency.value=1400;lp.Q.value=0.4;
     _melBus.connect(lp);
@@ -2399,7 +2400,8 @@ const AudioEngine = (() => {
     /* Start tanpura drone */
     _startTanpura(c);
 
-    _nextT=c.currentTime+1.2; /* 1.2s silence → tanpura settles first */
+    _stage=1; /* start at stage 1 — melody plays from first note */
+    _nextT=c.currentTime+0.3; /* very short silence then music begins */
     _playing=true;
     _scheduler(c);
     return true;
@@ -2431,13 +2433,9 @@ const AudioEngine = (() => {
   function getVolume(){return _currentVolume;}
 
   function setStage(n){
-    if(!_ctx)return;
+    /* Stage is cosmetic only — never silences the melody bus.
+       Music plays from note 1. Stage just tracks UI badge state. */
     _stage=Math.max(0,Math.min(3,n));
-    if(_melBus&&_ctx){
-      const now=_ctx.currentTime;
-      _melBus.gain.setValueAtTime(_melBus.gain.value,now);
-      _melBus.gain.linearRampToValueAtTime(_stage>=1?1:0,now+3.5);
-    }
   }
 
   function getMeta(bpm,hrv){
@@ -2740,12 +2738,12 @@ function _addTimelineDot(mood) {
 }
 
 /* ── EVOLUTION ─────────────────────────────────────────────── */
-const STAGE_INTERVALS=[0,4000,30000,60000];
+const STAGE_INTERVALS=[0,1,30000,60000];
 function _startEvolution() {
-  _stopEvolution(); S.evolutionStage=0;
-  AudioEngine.setStage(0); _updateStageBadge(0);
+  _stopEvolution(); S.evolutionStage=1;
+  AudioEngine.setStage(1); _updateStageBadge(1);
   STAGE_INTERVALS.forEach((ms,idx)=>{
-    if(idx===0)return;
+    if(idx<=1)return;
     setTimeout(()=>{ if(!AudioEngine.getIsPlaying())return; S.evolutionStage=idx; AudioEngine.setStage(idx); _updateStageBadge(idx); },ms);
   });
 }
