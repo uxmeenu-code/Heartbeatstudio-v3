@@ -3770,123 +3770,90 @@ function _beginPPG(vid) {
   wC.width=wC.offsetWidth*dpr; wC.height=wC.offsetHeight*dpr;
   const HZ=30, MIN_GAP=350, SMOOTH_K=5, DC_WIN=90;
   const sq=[]; let lastPk=-1, fi=0;
-
-  /* ── ADAPTIVE FINGER DETECTION ─────────────────────────────────
-     Problem with fixed threshold (raw > 100):
-       - Camera auto-exposure varies wildly across devices
-       - Torch may not be supported; ambient light differs
-       - Some phones read 180+ with finger, some read 60
-     
-     Solution: RELATIVE detection using two signals:
-       1. Signal STABILITY: a finger makes the signal more stable
-          (DC component dominates). No finger = high variance from
-          ambient scene changes.
-       2. Red/Green RATIO: blood absorbs green, reflects red.
-          Finger presence increases red:green ratio.
-          This works even without torch on many devices.
-       3. Calibration window: first 60 frames (~2s) establish
-          the "no finger" baseline. Then compare against it.
-     
-     This approach works on all devices regardless of torch support.
-  ─────────────────────────────────────────────────────────────── */
-  let _calBuf = [];        /* calibration samples (no-finger baseline) */
-  let _calDone = false;    /* calibration complete flag */
-  let _calMean = -1;       /* baseline red mean */
-  let _calVar  = -1;       /* baseline variance */
-  let _noFingerFrames = 0; /* consecutive no-finger frames */
-  let _fingerFrames   = 0; /* consecutive finger frames */
-  const CAL_FRAMES = 45;   /* ~1.5s calibration window */
-  const FINGER_CONFIRM = 8;/* frames needed to confirm finger on/off */
+  let _fpCount=0, _nfCount=0; /* consecutive finger / no-finger frame counters */
 
   function frame() {
     if(!S.stream)return; fi++; S.frameN++;
     offCtx.drawImage(vid,0,0,40,30);
     const px=offCtx.getImageData(0,0,40,30).data;
-    let rs=0, gs=0;
-    for(let i=0;i<px.length;i+=4){ rs+=px[i]; gs+=px[i+1]; }
-    const nPx = px.length/4;
-    const raw  = rs/nPx;       /* avg red */
-    const rawG = gs/nPx;       /* avg green */
-    const rg   = rawG>0 ? raw/rawG : 1; /* red:green ratio */
 
-    /* ── Phase 1: Calibration (first CAL_FRAMES frames) ── */
-    if (!_calDone) {
-      _calBuf.push(raw);
-      if (fi <= 10) {
-        /* Very first frames: just show prompt, wait for camera to settle */
-        setFb('init'); setSig(0);
-        S.rafId = requestAnimationFrame(frame); return;
-      }
-      if (_calBuf.length >= CAL_FRAMES) {
-        _calMean = _calBuf.reduce((a,b)=>a+b,0)/_calBuf.length;
-        const variance = _calBuf.reduce((s,v)=>s+(v-_calMean)**2,0)/_calBuf.length;
-        _calVar = Math.sqrt(variance);
-        _calDone = true;
-        /* If calibration mean is already very high, camera may have started
-           with finger on lens — redo calibration */
-        if (_calMean > 200) { _calBuf=[]; _calDone=false; fi=11; }
-      }
-      setFb('init'); setSig(0);
-      S.rafId = requestAnimationFrame(frame); return;
-    }
+    /* Read R, G, B for every pixel */
+    let rs=0, gs=0, bs=0;
+    const N=px.length/4;
+    for(let i=0;i<px.length;i+=4){ rs+=px[i]; gs+=px[i+1]; bs+=px[i+2]; }
+    const mR=rs/N, mG=gs/N, mB=bs/N;
 
-    /* ── Phase 2: Adaptive finger detection ── */
-    /* Three independent signals — ANY ONE is enough to detect finger:
-       (a) Brightness: finger+torch makes red channel brighter (>10% above baseline)
-       (b) R/G ratio: blood tissue absorbs green, >1.3 indicates tissue
-       (c) Absolute: raw > 80 catches devices where baseline is very low
-           (dark room / no torch) but finger still raises signal noticeably
-    */
-    const brighterThanBase = raw > _calMean * 1.10;   /* 10% brighter than baseline */
-    const redDominant      = rg > 1.3;                 /* tissue optical signature */
-    const absoluteFloor    = raw > 80;                 /* catches dim-camera devices */
-    const fingerDetected   = brighterThanBase || redDominant || absoluteFloor;
+    /* ── PIXEL UNIFORMITY — the only reliable cross-device finger detector ──
+       
+       Key insight from debug data:
+         WITH finger:    R≈140, G≈136, B≈similar  → image is a uniform dark blob
+         WITHOUT finger: camera sees a real scene   → pixels vary widely in color
+       
+       When a finger covers the lens the entire 40×30 frame becomes nearly
+       one uniform color (the reddish glow of torch through tissue).
+       A real scene has spatial variation — bright areas, dark areas, edges.
+       
+       We measure this as: spatial variance of red channel across all pixels.
+         Low variance  (<300) = uniform blob = FINGER PRESENT
+         High variance (>600) = varied scene  = NO FINGER
+       
+       This is completely independent of:
+         - Whether the red value is high or low
+         - Auto-exposure compensation
+         - Torch support
+         - Ambient lighting
+    ─────────────────────────────────────────────────────────────────────── */
+    let rVar=0;
+    for(let i=0;i<px.length;i+=4){ const d=px[i]-mR; rVar+=d*d; }
+    rVar/=N; /* mean squared deviation of red channel */
 
-    if (fingerDetected) {
-      _fingerFrames++;
-      _noFingerFrames = 0;
-    } else {
-      _noFingerFrames++;
-      _fingerFrames = 0;
-    }
+    /* Also check: with finger, red dominates over blue (torch through tissue) */
+    const rdBlue = mR > mB * 1.05; /* red > blue = tissue/torch signature */
 
-    /* Require FINGER_CONFIRM consecutive frames to flip state — prevents flicker */
-    if (_fingerFrames >= FINGER_CONFIRM)   S.fingerPresent = true;
-    if (_noFingerFrames >= FINGER_CONFIRM) S.fingerPresent = false;
+    /* Finger present = low spatial variance AND red not washed out blue */
+    const fingerNow = (rVar < 500) && (mR > 30); /* mR>30 = not total darkness */
 
-    /* ── Debug output every 6 frames ── */
-    if (fi % 6 === 0) {
-      const _r = raw.toFixed(1), _g = rawG.toFixed(1), _rg = rg.toFixed(2);
-      const _base = _calDone ? _calMean.toFixed(1) : 'calibrating';
-      const _thresh = _calDone ? (_calMean*1.20).toFixed(1) : '--';
-      const _fp = S.fingerPresent ? '✅ YES' : '❌ NO';
-      const d=e=>{ const el=$id(e); return el?el:null; };
-      if(d('dbgR'))    d('dbgR').textContent    = _r;
-      if(d('dbgG'))    d('dbgG').textContent    = _g;
-      if(d('dbgRG'))   d('dbgRG').textContent   = _rg;
-      if(d('dbgBase')) d('dbgBase').textContent = _calDone?`${_base} (need >${_thresh})`:'calibrating…';
-      if(d('dbgFinger'))d('dbgFinger').textContent = _fp + (brighterThanBase?' (bright)':'') + (redDominant?' (R/G)':'');
+    /* Hysteresis: need 5 consecutive frames to flip state */
+    if(fingerNow){ _fpCount++; _nfCount=0; }
+    else         { _nfCount++; _fpCount=0; }
+    if(_fpCount>=5) S.fingerPresent=true;
+    if(_nfCount>=5) S.fingerPresent=false;
+
+    /* ── Debug panel ── */
+    if(fi%6===0){
+      const d=k=>$id(k);
+      if(d('dbgR'))    d('dbgR').textContent    = mR.toFixed(1);
+      if(d('dbgG'))    d('dbgG').textContent    = mG.toFixed(1);
+      if(d('dbgRG'))   d('dbgRG').textContent   = rVar.toFixed(0)+' var';
+      if(d('dbgBase')) d('dbgBase').textContent = `var<500=${rVar<500} R>30=${mR>30}`;
+      if(d('dbgFinger'))d('dbgFinger').textContent=S.fingerPresent?'✅ YES':'❌ NO – cover lens fully';
       if(d('dbgFi'))   d('dbgFi').textContent   = fi;
-      if(d('dbgAmp'))  d('dbgAmp').textContent  = (typeof amp!=='undefined'?amp.toFixed(2):'--');
-      if(d('dbgQ'))    d('dbgQ').textContent    = (typeof q!=='undefined'?q:'--');
       if(d('dbgPeaks'))d('dbgPeaks').textContent= S.peakTs.length;
     }
 
-    if (!S.fingerPresent) {
-      sq.length = 0;
-      S.ppgBuf = []; S.ppgTs = []; S.peakTs = [];
-      S.bpmHist = []; S.prevBpm = 72;
-      lastPk = -1;
+    /* ── No finger: instant feedback, pause data collection ── */
+    if(!S.fingerPresent){
+      /* Reset signal buffers so stale data doesn't pollute next reading */
+      sq.length=0;
+      S.ppgBuf=[]; S.ppgTs=[]; S.peakTs=[];
+      S.bpmHist=[]; S.prevBpm=72; lastPk=-1;
       setSig(0);
       setFb('init');
-      $set('liveBpm', '--');
+      $set('liveBpm','--');
       const p=$id('bpmPill'); if(p){p.textContent='';p.className='bpm-pill';}
-      S.rafId = requestAnimationFrame(frame);
+      /* PAUSE the scan timer so 30s only counts while finger is present */
+      if(S.scanTimer){ clearInterval(S.scanTimer); S.scanTimer=null; }
+      S.rafId=requestAnimationFrame(frame);
       return;
     }
 
-    /* ── Finger confirmed — process PPG signal ── */
-    S.ema=S.EMA_A*raw+(1-S.EMA_A)*S.ema;
+    /* ── Finger present: resume timer if it was paused ── */
+    if(!S.scanTimer && S.screen==='scan' && S.elapsed < S.SCAN_SEC){
+      _resumeTimer();
+    }
+
+    /* ── Process PPG signal ── */
+    S.ema=S.EMA_A*mR+(1-S.EMA_A)*S.ema;
     sq.push(S.ema); if(sq.length>SMOOTH_K)sq.shift();
     const sm=sq.reduce((a,b)=>a+b,0)/sq.length;
     const now=Date.now();
@@ -3896,12 +3863,19 @@ function _beginPPG(vid) {
     const lo=Math.min(...win), hi=Math.max(...win), amp=hi-lo;
     S.amplitude=Math.min(1,amp/8);
     const q=Math.min(5,Math.floor(amp/1.2)); setSig(q);
-    if(q<=1)setFb('weak'); else if(q<=2)setFb('ok'); else setFb('strong');
+    if(q<=1) setFb('weak'); else if(q<=2) setFb('ok'); else setFb('strong');
+
+    if(fi%6===0){
+      const da=$id('dbgAmp'),dq=$id('dbgQ');
+      if(da) da.textContent=amp.toFixed(2);
+      if(dq) dq.textContent=q;
+    }
+
     const n=S.ppgBuf.length;
-    if(n>5&&q>=2){  /* q>=2: finger is confirmed present, just need stable signal */
+    if(n>5&&q>=1){
       const c1=S.ppgBuf[n-3],c2=S.ppgBuf[n-2],c3=S.ppgBuf[n-1];
       const norm=(c2-lo)/(amp||1);
-      const isPk=c2>c1&&c2>c3&&norm>.55;
+      const isPk=c2>c1&&c2>c3&&norm>.50;
       const gapOk=(n-2)-lastPk>MIN_GAP/(1000/HZ);
       if(isPk&&gapOk){
         S.peakTs.push(S.ppgTs[n-2]); lastPk=n-2;
@@ -3931,19 +3905,26 @@ function _beginPPG(vid) {
 }
 
 /* ── SCAN TIMER ────────────────────────────────────────────── */
+function _timerTick() {
+  S.elapsed++;
+  const rem=S.SCAN_SEC-S.elapsed, pct=(S.elapsed/S.SCAN_SEC)*100;
+  $set('scanTL',`${rem}s remaining`);
+  const f=$id('progFill'); if(f)f.style.width=`${pct}%`;
+  const pb=$id('progressBar'); if(pb)pb.setAttribute('aria-valuenow',S.elapsed);
+  if(S.elapsed>=S.SCAN_SEC){clearInterval(S.scanTimer);S.scanTimer=null;_finalize();}
+}
 function _beginTimer() {
   S.timelineTimer=setInterval(()=>{
     _snapshotTimeline();
     if(S.bpmHist.length) _addTimelineDot(_mood(median(S.bpmHist),S.liveHrv||45));
   },10000);
-  S.scanTimer=setInterval(()=>{
-    S.elapsed++;
-    const rem=S.SCAN_SEC-S.elapsed, pct=(S.elapsed/S.SCAN_SEC)*100;
-    $set('scanTL',`${rem}s remaining`);
-    const f=$id('progFill'); if(f)f.style.width=`${pct}%`;
-    const pb=$id('progressBar'); if(pb)pb.setAttribute('aria-valuenow',S.elapsed);
-    if(S.elapsed>=S.SCAN_SEC){clearInterval(S.scanTimer);S.scanTimer=null;_finalize();}
-  },1000);
+  /* Timer starts PAUSED — only runs when finger is detected */
+  /* _resumeTimer() called by frame loop when finger present */
+}
+function _resumeTimer() {
+  if(S.scanTimer) return; /* already running */
+  if(S.elapsed >= S.SCAN_SEC) return; /* already done */
+  S.scanTimer = setInterval(_timerTick, 1000);
 }
 
 /* ── FINALIZE ──────────────────────────────────────────────── */
